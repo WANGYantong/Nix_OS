@@ -117,10 +117,20 @@ typedef struct nix_taskschedtab      //优先级调度表
     NIX_PRIOFLAG strFlag;            //优先级标志
 }NIX_TASKSCHEDTAB;
 
+typedef struct nix_sem               //信号量结构体
+{
+    NIX_TASKSCHEDTAB strSemtab;      //信号量调度表
+    U32 uiCounter;                   //信号量计数值
+    U32 uiSemOpt;                    //调度方式:优先级或FIFO
+    U8* pucSemMem;                   //创建信号量时的内存地址
+}NIX_SEM;
+
 typedef struct nix_tcb               //TCB结构体
 {
     STACKREG strStackReg;            //需要保存的寄存器组
     NIX_TCBQUE strTcbQue;            //TCB结构队列
+    NIX_TCBQUE strSemQue;            //sem表队列
+    NIX_SEM* pstrSem;                //阻塞任务的信号量指针
     U8* pucTaskName;                 //任务名称指针
     U8* pucTaskStack;               //创建任务的栈指针
     U32 uiTaskFlag;                  //任务标志
