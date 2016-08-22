@@ -8,5 +8,3 @@ extern void DEV_PutChar(U8 ucChar);
 extern void DEV_BufferInit(BUFPOOL * pstrBufPool);
 
 #endif
-
-

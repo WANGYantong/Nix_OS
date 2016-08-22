@@ -7,34 +7,30 @@
 //返回值  :NULL:创建队列失败
 //         其他:创建队列成功，返回值为创建的队列指针
 /**********************************************/
-NIX_QUE* NIX_QueCreate(NIX_QUE* pstrQue)
+NIX_QUE *NIX_QueCreate(NIX_QUE * pstrQue)
 {
-    U8* pucQueMemAddr;
+	U8 *pucQueMemAddr;
 
-    if(pstrQue == NULL)
-        {
-            (void)NIX_IntLock();
-            pucQueMemAddr = malloc(sizeof(NIX_QUE));
+	if (pstrQue == NULL) {
+		(void) NIX_IntLock();
+		pucQueMemAddr = malloc(sizeof(NIX_QUE));
 
-            if(pucQueMemAddr == NULL)
-                {
-                    (void)NIX_IntUnLock();
-                    return (NIX_QUE*)NULL;
-            }
+		if (pucQueMemAddr == NULL) {
+			(void) NIX_IntUnLock();
+			return (NIX_QUE *) NULL;
+		}
 
-            (void)NIX_IntLock();
-            pstrQue =(NIX_QUE*)pucQueMemAddr;
-    }
-    else
-        {
-            pucQueMemAddr = (U8*)NULL;
-    }
+		(void) NIX_IntLock();
+		pstrQue = (NIX_QUE *) pucQueMemAddr;
+	} else {
+		pucQueMemAddr = (U8 *) NULL;
+	}
 
-    NIX_ListInit(&pstrQue->strList);
+	NIX_ListInit(&pstrQue->strList);
 
-    pstrQue->pucQueMem = pucQueMemAddr;
+	pstrQue->pucQueMem = pucQueMemAddr;
 
-    return pstrQue;
+	return pstrQue;
 }
 
 /**********************************************/
@@ -44,19 +40,18 @@ NIX_QUE* NIX_QueCreate(NIX_QUE* pstrQue)
 //返回值  :RTN_SUCD:创建队列成功
 //         RTN_FAIL:创建队列失败
 /**********************************************/
-U32 NIX_QuePut(NIX_QUE* pstrQue, NIX_LIST* pstrQueNode)
+U32 NIX_QuePut(NIX_QUE * pstrQue, NIX_LIST * pstrQueNode)
 {
-    if((pstrQue == NULL) || (pstrQueNode == NULL))
-        {
-            return RTN_FAIL;
-    }
+	if ((pstrQue == NULL) || (pstrQueNode == NULL)) {
+		return RTN_FAIL;
+	}
 
-    (void)NIX_IntLock();
+	(void) NIX_IntLock();
 
-    NIX_ListNodeAdd(&pstrQue->strList, pstrQueNode);
+	NIX_ListNodeAdd(&pstrQue->strList, pstrQueNode);
 
-    (void)NIX_IntUnLock();
-    return RTN_SUCD;
+	(void) NIX_IntUnLock();
+	return RTN_SUCD;
 }
 
 /**********************************************/
@@ -67,34 +62,31 @@ U32 NIX_QuePut(NIX_QUE* pstrQue, NIX_LIST* pstrQueNode)
 //         RTN_FAIL:创建队列失败
 //         RTN_NULL:队列为空
 /**********************************************/
-U32 NIX_QueGet(NIX_QUE* pstrQue, NIX_LIST** ppstrQueNode)
+U32 NIX_QueGet(NIX_QUE * pstrQue, NIX_LIST ** ppstrQueNode)
 {
-    NIX_LIST* pstrQueNode;
+	NIX_LIST *pstrQueNode;
 
-    /* 入口参数检查 */
-    if((NULL == pstrQue) || (NULL == ppstrQueNode))
-    {
-        return RTN_FAIL;
-    }
+	/* 入口参数检查 */
+	if ((NULL == pstrQue) || (NULL == ppstrQueNode)) {
+		return RTN_FAIL;
+	}
 
-    (void)NIX_IntLock();
+	(void) NIX_IntLock();
 
-    /* 从队列取出节点 */
-    pstrQueNode = NIX_ListNodeDelete(&pstrQue->strList);
+	/* 从队列取出节点 */
+	pstrQueNode = NIX_ListNodeDelete(&pstrQue->strList);
 
-    (void)NIX_IntUnLock();
+	(void) NIX_IntUnLock();
 
-    /* 队列不为空, 可以取出节点 */
-    if(NULL != pstrQueNode)
-    {
-        *ppstrQueNode = pstrQueNode;
+	/* 队列不为空, 可以取出节点 */
+	if (NULL != pstrQueNode) {
+		*ppstrQueNode = pstrQueNode;
 
-        return RTN_SUCD;
-    }
-    else /* 队列为空, 无法取出节点 */
-    {
-        return RTN_NULL;
-    }
+		return RTN_SUCD;
+	} else {		/* 队列为空, 无法取出节点 */
+
+		return RTN_NULL;
+	}
 
 }
 
@@ -104,23 +96,20 @@ U32 NIX_QueGet(NIX_QUE* pstrQue, NIX_LIST** ppstrQueNode)
 //返回值  :RTN_SUCD:删除队列成功
 //         RTN_FAIL:删除队列失败
 /**********************************************/
-U32 NIX_QueDelete(NIX_QUE* pstrQue)
+U32 NIX_QueDelete(NIX_QUE * pstrQue)
 {
-    if(pstrQue == NULL)
-        {
-            return RTN_FAIL;
-    }
+	if (pstrQue == NULL) {
+		return RTN_FAIL;
+	}
 
-    if(pstrQue->pucQueMem != NULL)
-        {
-            (void)NIX_IntLock();
+	if (pstrQue->pucQueMem != NULL) {
+		(void) NIX_IntLock();
 
-            free(pstrQue->pucQueMem);
+		free(pstrQue->pucQueMem);
 
-            (void)NIX_IntUnLock();
-    }
+		(void) NIX_IntUnLock();
+	}
 
-    return RTN_SUCD;
+	return RTN_SUCD;
 
 }
-

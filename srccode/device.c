@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-BUFPOOL gstrBufPool;                            //消息缓冲池
+BUFPOOL gstrBufPool;		//消息缓冲池
 
 /**********************************************/
 //函数功能:初始化软件
@@ -12,14 +12,14 @@ BUFPOOL gstrBufPool;                            //消息缓冲池
 /**********************************************/
 void DEV_SoftwareInit(void)
 {
-    DEV_BufferInit(&gstrBufPool);               //初始化消息缓冲池
+	DEV_BufferInit(&gstrBufPool);	//初始化消息缓冲池
 
-    (void)NIX_QueCreate(&gstrSerialMsgQue);     //创建打印消息的队列
+	(void) NIX_QueCreate(&gstrSerialMsgQue);	//创建打印消息的队列
 
 #ifdef NIX_INCLUDETASKHOOK
-    NIX_TaskCreateHookAdd(TEST_TaskCreatePrint);
-    NIX_TaskSwitchHookAdd(TEST_TaskSwitchPrint);
-    NIX_TaskDeleteHookAdd(TEST_TaskDeletePrint);
+	NIX_TaskCreateHookAdd(TEST_TaskCreatePrint);
+	NIX_TaskSwitchHookAdd(TEST_TaskSwitchPrint);
+	NIX_TaskDeleteHookAdd(TEST_TaskDeletePrint);
 
 #endif
 }
@@ -31,7 +31,7 @@ void DEV_SoftwareInit(void)
 /**********************************************/
 void DEV_HardwareInit(void)
 {
-    DEV_UartInit();
+	DEV_UartInit();
 }
 
 /**********************************************/
@@ -41,24 +41,24 @@ void DEV_HardwareInit(void)
 /**********************************************/
 void DEV_UartInit(void)
 {
-    GPIO_InitTypeDef GPIO_InitStructure;
-    USART_InitTypeDef USART_InitStructure;
+	GPIO_InitTypeDef GPIO_InitStructure;
+	USART_InitTypeDef USART_InitStructure;
 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1
-                            | RCC_APB2Periph_AFIO, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1
+			       | RCC_APB2Periph_AFIO, ENABLE);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    USART_StructInit(&USART_InitStructure);
-    USART_Init(USART1, &USART_InitStructure);
-    USART_Cmd(USART1, ENABLE);
+	USART_StructInit(&USART_InitStructure);
+	USART_Init(USART1, &USART_InitStructure);
+	USART_Cmd(USART1, ENABLE);
 
 }
 
@@ -69,8 +69,8 @@ void DEV_UartInit(void)
 /**********************************************/
 void DEV_PutChar(U8 ucChar)
 {
-    while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-    USART_SendData(USART1, ucChar);
+	while (USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+	USART_SendData(USART1, ucChar);
 }
 
 /**********************************************/
@@ -79,28 +79,27 @@ void DEV_PutChar(U8 ucChar)
 //         ...:其他参数
 //返回值  :none
 /**********************************************/
-void DEV_PutStrToMem(U8* pvStringPt, ...)
+void DEV_PutStrToMem(U8 * pvStringPt, ...)
 {
-    MSGBUF* pstrMsgBuf;
-    va_list args;
+	MSGBUF *pstrMsgBuf;
+	va_list args;
 
-    /* 申请buf, 用来存放需要打印的字符 */
-    pstrMsgBuf = (MSGBUF*)DEV_BufferAlloc(&gstrBufPool);
-    if(NULL == pstrMsgBuf)
-    {
-        return;
-    }
+	/* 申请buf, 用来存放需要打印的字符 */
+	pstrMsgBuf = (MSGBUF *) DEV_BufferAlloc(&gstrBufPool);
+	if (NULL == pstrMsgBuf) {
+		return;
+	}
 
-    /* 将字符串打印到内存 */
-    va_start(args, pvStringPt);
-    (void)vsprintf(pstrMsgBuf->aucBuf, pvStringPt, args);
-    va_end(args);
+	/* 将字符串打印到内存 */
+	va_start(args, pvStringPt);
+	(void) vsprintf(pstrMsgBuf->aucBuf, pvStringPt, args);
+	va_end(args);
 
-    /* 填充buf参数 */
-    pstrMsgBuf->ucLength = strlen(pstrMsgBuf->aucBuf);
+	/* 填充buf参数 */
+	pstrMsgBuf->ucLength = strlen(pstrMsgBuf->aucBuf);
 
-    /* 将buf挂入队列 */
-    (void)NIX_QuePut(&gstrSerialMsgQue, &pstrMsgBuf->strList);
+	/* 将buf挂入队列 */
+	(void) NIX_QuePut(&gstrSerialMsgQue, &pstrMsgBuf->strList);
 
 
 }
@@ -111,15 +110,14 @@ void DEV_PutStrToMem(U8* pvStringPt, ...)
 //         uiLen:需要打印的数据长度，单位:字节
 //返回值  :none
 /**********************************************/
-void DEV_PrintMsg(U8* pucBuf, U32 uiLen)
+void DEV_PrintMsg(U8 * pucBuf, U32 uiLen)
 {
-    U32 uiCounter;
-    uiCounter = 0;
+	U32 uiCounter;
+	uiCounter = 0;
 
-    while(uiLen > uiCounter)
-        {
-            (void)DEV_PutChar(pucBuf[uiCounter++]);
-    }
+	while (uiLen > uiCounter) {
+		(void) DEV_PutChar(pucBuf[uiCounter++]);
+	}
 }
 
 /**********************************************/
@@ -127,17 +125,16 @@ void DEV_PrintMsg(U8* pucBuf, U32 uiLen)
 //输入参数:pstrBufPool:消息缓冲池指针
 //返回值  :none
 /**********************************************/
-void DEV_BufferInit(BUFPOOL* pstrBufPool)
+void DEV_BufferInit(BUFPOOL * pstrBufPool)
 {
-    U32 i;
+	U32 i;
 
-    NIX_ListInit(&pstrBufPool->strFreeList);
+	NIX_ListInit(&pstrBufPool->strFreeList);
 
-    for(i=0; i < BUFPOOLNUM; i++)
-        {
-           NIX_ListNodeAdd(&pstrBufPool->strFreeList,
-                           &pstrBufPool->astrBufPool[i].strList);
-    }
+	for (i = 0; i < BUFPOOLNUM; i++) {
+		NIX_ListNodeAdd(&pstrBufPool->strFreeList,
+				&pstrBufPool->astrBufPool[i].strList);
+	}
 }
 
 
@@ -146,17 +143,17 @@ void DEV_BufferInit(BUFPOOL* pstrBufPool)
 //输入参数:pstrBufPool:消息缓冲池指针
 //返回值  :分配的消息缓冲指针
 /**********************************************/
-MSGBUF* DEV_BufferAlloc(BUFPOOL* pstrBufPool)
+MSGBUF *DEV_BufferAlloc(BUFPOOL * pstrBufPool)
 {
-    MSGBUF* pstrBuf;
+	MSGBUF *pstrBuf;
 
-    (void)NIX_IntLock();
+	(void) NIX_IntLock();
 
-    pstrBuf = (MSGBUF*)NIX_ListNodeDelete(&pstrBufPool->strFreeList);
+	pstrBuf = (MSGBUF *) NIX_ListNodeDelete(&pstrBufPool->strFreeList);
 
-    (void)NIX_IntUnLock();
+	(void) NIX_IntUnLock();
 
-    return pstrBuf;
+	return pstrBuf;
 }
 
 
@@ -166,14 +163,11 @@ MSGBUF* DEV_BufferAlloc(BUFPOOL* pstrBufPool)
 //         pstrQueNode:释放的缓冲节点指针
 //返回值  :none
 /**********************************************/
-void DEV_BufferFree(BUFPOOL* pstrBufPool, NIX_LIST* pstrQueNode)
+void DEV_BufferFree(BUFPOOL * pstrBufPool, NIX_LIST * pstrQueNode)
 {
-    (void)NIX_IntLock();
+	(void) NIX_IntLock();
 
-    NIX_ListNodeAdd(&pstrBufPool->strFreeList, pstrQueNode);
+	NIX_ListNodeAdd(&pstrBufPool->strFreeList, pstrQueNode);
 
-    (void)NIX_IntUnLock();
+	(void) NIX_IntUnLock();
 }
-
-
-

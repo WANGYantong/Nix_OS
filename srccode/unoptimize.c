@@ -7,16 +7,14 @@
 /**********************************************/
 void DEV_DelayMs(U32 uiMs)
 {
-    U32 i;
-    U32 j;
+	U32 i;
+	U32 j;
 
-    j = 5540*uiMs;
+	j = 5540 * uiMs;
 
-    for(i = 0; ; i++)
-    {
-        if(i == j)
-        {
-            break;
-        }
-    }
+	for (i = 0;; i++) {
+		if (i == j) {
+			break;
+		}
+	}
 }
