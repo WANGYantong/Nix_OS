@@ -9,8 +9,7 @@ U32 guiIntLockCounter;		//锁中断计数值
 //         pvPara:入口参数指针
 //返回值  :none
 /**********************************************/
-void NIX_TaskStackInit(NIX_TCB * pstrTcb, VFUNC vfFuncPointer,
-		       void *pvPara)
+void NIX_TaskStackInit(NIX_TCB * pstrTcb, VFUNC vfFuncPointer, void *pvPara)
 {
 	STACKREG *pstrRegSp;
 	U32 *puiStack;
@@ -107,7 +106,11 @@ void NIX_SetChipWorkMode(U32 uiMode)
 /**********************************************/
 void NIX_TaskSwiSched(void)
 {
-	NIX_TaskOccurSwi(SWI_TASKSCHED);
+	if (NIX_RunInInt() != RTN_SUCD) {
+		NIX_TaskOccurSwi(SWI_TASKSCHED);
+	} else {
+		NIX_IntPendSvSet();
+	}
 }
 
 /**********************************************/
