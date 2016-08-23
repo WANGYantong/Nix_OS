@@ -87,13 +87,10 @@ void NIX_SystemVarInit(void)
 
 	//创建前根任务
 	gpstrRootTaskTcb =
-	    NIX_TaskCreat(ROOTTASKNAME, NIX_BeforeRootTask, NULL, NULL,
-			  ROOTTASKSTACK, USERHIGHESTPRIO, NULL);
+	    NIX_TaskCreat(ROOTTASKNAME, NIX_BeforeRootTask, NULL, NULL, ROOTTASKSTACK, USERHIGHESTPRIO, NULL);
 
 	//创建Idle任务
-	gpstrIdleTaskTcb =
-	    NIX_TaskCreat(IDLETASKNAME, NIX_IdleTask, NULL, NULL,
-			  IDLETASKSTACK, LOWESTPRIO, NULL);
+	gpstrIdleTaskTcb = NIX_TaskCreat(IDLETASKNAME, NIX_IdleTask, NULL, NULL, IDLETASKSTACK, LOWESTPRIO, NULL);
 
 }
 
@@ -283,8 +280,7 @@ void NIX_TaskSchedTabInit(NIX_TASKSCHEDTAB * pstrSchedTab)
 //         ucTaskPrio:待添加的节点的优先级
 //返回值  :none
 /**********************************************/
-void NIX_TaskAddToSchedTab(NIX_LIST * pstrList, NIX_LIST * pstrNode,
-			   NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio)
+void NIX_TaskAddToSchedTab(NIX_LIST * pstrList, NIX_LIST * pstrNode, NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio)
 {
 	NIX_ListNodeAdd(pstrList, pstrNode);
 	NIX_TaskSetPrioFlag(pstrPrioFlag, ucTaskPrio);
@@ -297,9 +293,7 @@ void NIX_TaskAddToSchedTab(NIX_LIST * pstrList, NIX_LIST * pstrNode,
 //         ucTaskPrio:要删除任务的优先级
 //返回值  :被删除的任务的节点指针
 /**********************************************/
-NIX_LIST *NIX_TaskDelFromSchedTab(NIX_LIST * pstrList,
-				  NIX_PRIOFLAG * pstrPrioFlag,
-				  U8 ucTaskPrio)
+NIX_LIST *NIX_TaskDelFromSchedTab(NIX_LIST * pstrList, NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio)
 {
 	NIX_LIST *pstrDelNode;
 	pstrDelNode = NIX_ListNodeDelete(pstrList);
@@ -360,17 +354,12 @@ void NIX_TaskAddToDelayTab(NIX_LIST * pstrNode)
 			//未来考虑参考freertos的实现
 			if (uiStillTick < uiTempStillTick) {
 				if (uiStillTick > guiTick) {
-					NIX_ListNodeInsert(&gstrDelayTab,
-							   pstrTempNode,
-							   pstrNode);
+					NIX_ListNodeInsert(&gstrDelayTab, pstrTempNode, pstrNode);
 
 					return;
 				} else if (uiStillTick < guiTick) {
 					if (guiTick > uiTempStillTick) {
-						NIX_ListNodeInsert
-						    (&gstrDelayTab,
-						     pstrTempNode,
-						     pstrNode);
+						NIX_ListNodeInsert(&gstrDelayTab, pstrTempNode, pstrNode);
 
 						return;
 					}
@@ -378,10 +367,7 @@ void NIX_TaskAddToDelayTab(NIX_LIST * pstrNode)
 			} else if (uiStillTick > uiTempStillTick) {
 				if (uiStillTick > guiTick) {
 					if (guiTick > uiTempStillTick) {
-						NIX_ListNodeInsert
-						    (&gstrDelayTab,
-						     pstrTempNode,
-						     pstrNode);
+						NIX_ListNodeInsert(&gstrDelayTab, pstrTempNode, pstrNode);
 
 						return;
 					}
@@ -389,9 +375,7 @@ void NIX_TaskAddToDelayTab(NIX_LIST * pstrNode)
 			}
 
 
-			pstrNextNode =
-			    NIX_ListNextNodeEmpInq(&gstrDelayTab,
-						   pstrTempNode);
+			pstrNextNode = NIX_ListNextNodeEmpInq(&gstrDelayTab, pstrTempNode);
 
 			if (pstrNextNode == NULL) {
 				NIX_ListNodeAdd(&gstrDelayTab, pstrNode);
@@ -433,26 +417,26 @@ void NIX_TaskDelayTabSched(void)
 			uiTick = pstrTcb->uiStillTick;
 
 			if (guiTick == uiTick) {
-				pstrNextNode =
-				    NIX_ListCurNodeDelete(&gstrDelayTab,
-							  pstrDelayNode);
+				pstrNextNode = NIX_ListCurNodeDelete(&gstrDelayTab, pstrDelayNode);
 
-				pstrTcb->uiTaskFlag &=
-				    (~((U32) DELAYQUEFLAG));
-				pstrTcb->strTaskOpt.ucTaskSta &=
-				    (~((U8) TASKDELAY));
-				pstrTcb->strTaskOpt.uiDelayTick =
-				    RTN_TKDLTO;
+				pstrTcb->uiTaskFlag &= (~((U32) DELAYQUEFLAG));
+
+				if ((pstrTcb->strTaskOpt.ucTaskSta & TASKDELAY) == TASKDELAY) {
+					pstrTcb->strTaskOpt.ucTaskSta &= (~((U8) TASKDELAY));
+					pstrTcb->strTaskOpt.uiDelayTick = RTN_TKDLTO;
+				} else if ((pstrTcb->strTaskOpt.ucTaskSta & TASKPEND) == TASKPEND) {
+					(void)
+					    NIX_TaskDelFromSemTab(pstrTcb);
+					pstrTcb->strTaskOpt.ucTaskSta &= (~((U8) TASKPEND));
+					pstrTcb->strTaskOpt.uiDelayTick = RTN_SMTKTO;
+				}
 
 				pstrNode = &pstrTcb->strTcbQue.strQueHead;
 				ucTaskPrio = pstrTcb->ucTaskPrio;
-				pstrList =
-				    &gstrReadyTab.astrList[ucTaskPrio];
+				pstrList = &gstrReadyTab.astrList[ucTaskPrio];
 				pstrPrioFlag = &gstrReadyTab.strFlag;
 
-				NIX_TaskAddToSchedTab(pstrList, pstrNode,
-						      pstrPrioFlag,
-						      ucTaskPrio);
+				NIX_TaskAddToSchedTab(pstrList, pstrNode, pstrPrioFlag, ucTaskPrio);
 
 				pstrTcb->strTaskOpt.ucTaskSta |= TASKREADY;
 
@@ -493,8 +477,7 @@ void NIX_TaskAddToSemTab(NIX_TCB * pstrTcb, NIX_SEM * pstrSem)
 		pstrNode = &pstrTcb->strSemQue.strQueHead;
 		pstrPrioFlag = &pstrSem->strSemtab.strFlag;
 
-		NIX_TaskAddToSchedTab(pstrList, pstrNode, pstrPrioFlag,
-				      ucTaskPrio);
+		NIX_TaskAddToSchedTab(pstrList, pstrNode, pstrPrioFlag, ucTaskPrio);
 	} else {
 		pstrList = &pstrSem->strSemtab.astrList[LOWESTPRIO];
 		pstrNode = &pstrTcb->strSemQue.strQueHead;
@@ -525,8 +508,7 @@ NIX_LIST *NIX_TaskDelFromSemTab(NIX_TCB * pstrTcb)
 		pstrList = &pstrSem->strSemtab.astrList[ucTaskPrio];
 		pstrPrioFlag = &pstrSem->strSemtab.strFlag;
 
-		NIX_TaskDelFromSchedTab(pstrList, pstrPrioFlag,
-					ucTaskPrio);
+		NIX_TaskDelFromSchedTab(pstrList, pstrPrioFlag, ucTaskPrio);
 	} else {
 		pstrList = &pstrSem->strSemtab.astrList[LOWESTPRIO];
 
@@ -546,14 +528,12 @@ NIX_TCB *NIX_SemGetAcitveTask(NIX_SEM * pstrSem)
 	U8 ucTaskPrio;
 
 	if ((pstrSem->uiSemOpt & SEMSCHEDOPTMASK) == SEMPRIO) {
-		ucTaskPrio =
-		    NIX_TaskGetHighestPrio(&pstrSem->strSemtab.strFlag);
+		ucTaskPrio = NIX_TaskGetHighestPrio(&pstrSem->strSemtab.strFlag);
 	} else {
 		ucTaskPrio = LOWESTPRIO;
 	}
 
-	pstrNode =
-	    NIX_ListEmpInq(&pstrSem->strSemtab.astrList[ucTaskPrio]);
+	pstrNode = NIX_ListEmpInq(&pstrSem->strSemtab.astrList[ucTaskPrio]);
 
 	if (pstrNode == NULL) {
 		return (NIX_TCB *) NULL;
@@ -597,10 +577,8 @@ void NIX_TaskSetPrioFlag(NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio)
 	ucPosInGrp2 = ucPrioFlagGrp1 % 8;
 	ucPosInGrp3 = ucPrioFlagGrp2;
 
-	pstrPrioFlag->aucPrioFlagGRP1[ucPrioFlagGrp1] |=
-	    (U8) (1 << ucPosInGrp1);
-	pstrPrioFlag->aucPrioFlagGRP2[ucPrioFlagGrp2] |=
-	    (U8) (1 << ucPosInGrp2);
+	pstrPrioFlag->aucPrioFlagGRP1[ucPrioFlagGrp1] |= (U8) (1 << ucPosInGrp1);
+	pstrPrioFlag->aucPrioFlagGRP2[ucPrioFlagGrp2] |= (U8) (1 << ucPosInGrp2);
 	pstrPrioFlag->ucPrioFlagGrp3 |= (U8) (1 << ucPosInGrp3);
 #elif PRIORITYNUM >= PRIORITY16
 	ucPrioFlagGrp1 = ucTaskPrio / 8;
@@ -608,8 +586,7 @@ void NIX_TaskSetPrioFlag(NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio)
 	ucPosInGrp1 = ucTaskPrio % 8;
 	ucPosInGrp2 = ucPrioFlagGrp1;
 
-	pstrPrioFlag->aucPrioFlagGRP1[ucPrioFlagGrp1] |=
-	    (U8) (1 << ucPosInGrp1);
+	pstrPrioFlag->aucPrioFlagGRP1[ucPrioFlagGrp1] |= (U8) (1 << ucPosInGrp1);
 	pstrPrioFlag->ucPrioFlagGRP2 |= (U8) (1 << ucPosInGrp2);
 #else
 	pstrPrioFlag->ucPrioFlagGRP1 |= (U8) (1 << ucTaskPrio);
@@ -645,14 +622,11 @@ void NIX_TaskClrPrioFlag(NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio)
 	ucPosInGrp2 = ucPrioFlagGrp1 % 8;
 	ucPosInGrp3 = ucPrioFlagGrp2;
 
-	pstrPrioFlag->aucPrioFlagGrp1[ucPrioFlagGrp1] &=
-	    ~((U8) (1 << ucPosInGrp1));
+	pstrPrioFlag->aucPrioFlagGrp1[ucPrioFlagGrp1] &= ~((U8) (1 << ucPosInGrp1));
 	if (pstrPrioFlag->aucPrioFlagGrp1[ucPrioFlagGrp1] == 0) {
-		pstrPrioFlag->aucPrioFlagGrp2[ucPrioFlagGrp2] &=
-		    ~((U8) (1 << ucPosInGrp2));
+		pstrPrioFlag->aucPrioFlagGrp2[ucPrioFlagGrp2] &= ~((U8) (1 << ucPosInGrp2));
 		if (pstrPrioFlag->aucPrioFlagGrp2[ucPrioFlagGrp2] == 0) {
-			pstrPrioFlag->ucPrioFlagGrp3 &=
-			    ~((U8) (1 << ucPosInGrp3));
+			pstrPrioFlag->ucPrioFlagGrp3 &= ~((U8) (1 << ucPosInGrp3));
 		}
 	}
 #elif PRIORITYNUM >= PRIORITY16
@@ -662,8 +636,7 @@ void NIX_TaskClrPrioFlag(NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio)
 	ucPosInGrp1 = ucTaskPrio % 8;
 	ucPosInGrp2 = ucPrioFlagGrp1;
 
-	pstrPrioFlag->aucPrioFlagGrp1[ucPrioFlagGrp1] &=
-	    ~((U8) (1 << ucPosInGrp1));
+	pstrPrioFlag->aucPrioFlagGrp1[ucPrioFlagGrp1] &= ~((U8) (1 << ucPosInGrp1));
 	if (pstrPrioFlag->aucPrioFlagGrp1[ucPrioFlagGrp1] == 0) {
 		pstrPrioFlag->ucPrioFlagGrp2 &= ~((U8) (1 << ucPosInGrp2));
 	}
@@ -691,22 +664,13 @@ U8 NIX_TaskGetHighestPrio(NIX_PRIOFLAG * pstrPrioFlag)
 #endif
 
 #if PRIORITYNUM >= PRIORITY128
-	ucPrioFlagGrp2 =
-	    caucTaskPrioUnmapTab[pstrPrioFlag->ucPrioFlagGrp3];
-	ucPrioFlagGrp1 =
-	    caucTaskPrioUnmapTab[pstrPrioFlag->aucPrioFlagGRP2
-				 [ucPrioFlagGrp2]];
-	ucHighestFlagInGrp1 =
-	    caucTaskPrioUnmapTab[pstrPrioFlag->aucPrioFlagGRP1
-				 [ucPrioFlagGrp2 * 8 + ucPrioFlagGrp1]];
-	return (U8) ((ucPrioFlagGrp2 * 8 + ucPrioFlagGrp1) * 8 +
-		     ucHighestFlagInGrp1);
+	ucPrioFlagGrp2 = caucTaskPrioUnmapTab[pstrPrioFlag->ucPrioFlagGrp3];
+	ucPrioFlagGrp1 = caucTaskPrioUnmapTab[pstrPrioFlag->aucPrioFlagGRP2[ucPrioFlagGrp2]];
+	ucHighestFlagInGrp1 = caucTaskPrioUnmapTab[pstrPrioFlag->aucPrioFlagGRP1[ucPrioFlagGrp2 * 8 + ucPrioFlagGrp1]];
+	return (U8) ((ucPrioFlagGrp2 * 8 + ucPrioFlagGrp1) * 8 + ucHighestFlagInGrp1);
 #elif PRIORITYNUM >= PRIORITY16
-	ucPrioFlagGrp1 =
-	    caucTaskPrioUnmapTab[pstrPrioFlag->ucPrioFlagGRP2];
-	ucHighestFlagInGrp1 =
-	    caucTaskPrioUnmapTab[pstrPrioFlag->aucPrioFlagGRP1
-				 [ucPrioFlagGrp1]];
+	ucPrioFlagGrp1 = caucTaskPrioUnmapTab[pstrPrioFlag->ucPrioFlagGRP2];
+	ucHighestFlagInGrp1 = caucTaskPrioUnmapTab[pstrPrioFlag->aucPrioFlagGRP1[ucPrioFlagGrp1]];
 	return (U8) (ucPrioFlagGrp1 * 8 + ucHighestFlagInGrp1);
 #else
 	return caucTaskPrioUnmapTab[pstrPrioFlag->ucPrioFlagGRP1];
