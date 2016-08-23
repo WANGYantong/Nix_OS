@@ -20,8 +20,7 @@ VFHDLT gvfTaskDeleteHook;	//任务删除钩子变量
 //         其他: 任务TCB指针
 /**********************************************/
 NIX_TCB *NIX_TaskCreat(U8 * pucTaskName, VFUNC vfFuncPointer, void *pvPara,
-		       U8 * pucTaskStack, U32 uiStackSize, U8 ucTaskPrio,
-		       NIX_TASKOPT * pstrTaskOpt)
+		       U8 * pucTaskStack, U32 uiStackSize, U8 ucTaskPrio, NIX_TASKOPT * pstrTaskOpt)
 {
 	NIX_TCB *pstrTcb;
 
@@ -30,9 +29,8 @@ NIX_TCB *NIX_TaskCreat(U8 * pucTaskName, VFUNC vfFuncPointer, void *pvPara,
 	}
 
 	if (pstrTaskOpt != NULL) {
-		if (!
-		    ((pstrTaskOpt->ucTaskSta == TASKREADY)
-		     || (pstrTaskOpt->ucTaskSta == TASKDELAY))) {
+		if (!((pstrTaskOpt->ucTaskSta == TASKREADY)
+		      || (pstrTaskOpt->ucTaskSta == TASKDELAY))) {
 			return (NIX_TCB *) NULL;
 		}
 	}
@@ -49,9 +47,7 @@ NIX_TCB *NIX_TaskCreat(U8 * pucTaskName, VFUNC vfFuncPointer, void *pvPara,
 	}
 
 	pstrTcb =
-	    NIX_TaskTcbInit(pucTaskName, vfFuncPointer, pvPara,
-			    pucTaskStack, uiStackSize, ucTaskPrio,
-			    pstrTaskOpt);
+	    NIX_TaskTcbInit(pucTaskName, vfFuncPointer, pvPara, pucTaskStack, uiStackSize, ucTaskPrio, pstrTaskOpt);
 
 	if (pstrTcb == NULL) {
 		return NULL;
@@ -103,14 +99,17 @@ U32 NIX_TaskDelete(NIX_TCB * pstrTcb)
 		pstrList = &gstrReadyTab.astrList[ucTaskPrio];
 		pstrPrioFlag = &gstrReadyTab.strFlag;
 
-		(void) NIX_TaskDelFromSchedTab(pstrList, pstrPrioFlag,
-					       ucTaskPrio);
+		(void) NIX_TaskDelFromSchedTab(pstrList, pstrPrioFlag, ucTaskPrio);
 	}
 
 	if ((pstrTcb->uiTaskFlag & DELAYQUEFLAG) == DELAYQUEFLAG) {
 		pstrNode = &pstrTcb->strTcbQue.strQueHead;
 
 		(void) NIX_ListCurNodeDelete(pstrList, pstrNode);
+	}
+
+	if ((ucTaskSta & TASKPEND) == TASKPEND) {
+		(void) NIX_TaskDelFromSemTab(pstrTcb);
 	}
 
 	if ((pstrTcb->uiTaskFlag & TASKSTACKFLAG) == TASKSTACKFLAG) {
@@ -152,8 +151,7 @@ void NIX_TaskSelfDelete(void)
 //         其他: 任务TCB指针
 /**********************************************/
 NIX_TCB *NIX_TaskTcbInit(U8 * pucTaskName, VFUNC vfFuncPointer,
-			 void *pvPara, U8 * pucTaskStack, U32 uiStackSize,
-			 U8 ucTaskPrio, NIX_TASKOPT * pstrTaskOpt)
+			 void *pvPara, U8 * pucTaskStack, U32 uiStackSize, U8 ucTaskPrio, NIX_TASKOPT * pstrTaskOpt)
 {
 	NIX_TCB *pstrTcb;
 	NIX_LIST *pstrList;
@@ -176,11 +174,8 @@ NIX_TCB *NIX_TaskTcbInit(U8 * pucTaskName, VFUNC vfFuncPointer,
 		uiTaskFlag = 0;
 	}
 
-	pucStackBy4 =
-	    (U8 *) (((U32) pucTaskStack + uiStackSize) & ALIGN4MASK);
-	pstrTcb =
-	    (NIX_TCB *) (((U32) pucStackBy4 - sizeof(NIX_TCB)) &
-			 STACKALIGNMASK);
+	pucStackBy4 = (U8 *) (((U32) pucTaskStack + uiStackSize) & ALIGN4MASK);
+	pstrTcb = (NIX_TCB *) (((U32) pucStackBy4 - sizeof(NIX_TCB)) & STACKALIGNMASK);
 	pstrTcb->pucTaskStack = pucTaskStack;
 
 	NIX_TaskStackInit(pstrTcb, vfFuncPointer, pvPara);
@@ -203,14 +198,12 @@ NIX_TCB *NIX_TaskTcbInit(U8 * pucTaskName, VFUNC vfFuncPointer,
 		pstrNode = &pstrTcb->strTcbQue.strQueHead;
 		pstrPrioFlag = &gstrReadyTab.strFlag;
 
-		NIX_TaskAddToSchedTab(pstrList, pstrNode, pstrPrioFlag,
-				      ucTaskPrio);
+		NIX_TaskAddToSchedTab(pstrList, pstrNode, pstrPrioFlag, ucTaskPrio);
 	}
 
 	if ((pstrTcb->strTaskOpt.ucTaskSta & TASKDELAY) == TASKDELAY) {
 		if (pstrTaskOpt->uiDelayTick != DELAYWAITFEV) {
-			pstrTcb->uiStillTick =
-			    guiTick + pstrTaskOpt->uiDelayTick;
+			pstrTcb->uiStillTick = guiTick + pstrTaskOpt->uiDelayTick;
 			pstrNode = &pstrTcb->strTcbQue.strQueHead;
 			NIX_TaskAddToDelayTab(pstrNode);
 			pstrTcb->uiTaskFlag |= DELAYQUEFLAG;
@@ -252,9 +245,7 @@ U32 NIX_TaskDelay(U32 uiDelayTick)
 
 		(void) NIX_IntLock();
 
-		pstrNode =
-		    NIX_TaskDelFromSchedTab(pstrList, pstrPrioFlag,
-					    ucTaskPrio);
+		pstrNode = NIX_TaskDelFromSchedTab(pstrList, pstrPrioFlag, ucTaskPrio);
 
 		gpstrCurTcb->strTaskOpt.ucTaskSta &= ~((U8) TASKREADY);
 		gpstrCurTcb->strTaskOpt.uiDelayTick = uiDelayTick;
@@ -320,8 +311,7 @@ U32 NIX_TaskWake(NIX_TCB * pstrTcb)
 	pstrList = &gstrReadyTab.astrList[ucTaskPrio];
 	pstrPrioFlag = &gstrReadyTab.strFlag;
 
-	NIX_TaskAddToSchedTab(pstrList, pstrNode, pstrPrioFlag,
-			      ucTaskPrio);
+	NIX_TaskAddToSchedTab(pstrList, pstrNode, pstrPrioFlag, ucTaskPrio);
 
 	pstrTcb->strTaskOpt.ucTaskSta |= TASKREADY;
 
@@ -332,6 +322,46 @@ U32 NIX_TaskWake(NIX_TCB * pstrTcb)
 	return RTN_SUCD;
 
 }
+
+/**********************************************/
+//函数功能:任务进入pend态
+//输入参数:pstrSem:阻塞任务的信号量指针
+//         uiDelayTick:延迟时间
+//返回值  :SUCD:任务成功pend    FAIL:失败
+/**********************************************/
+U32 NIX_TaskPend(NIX_SEM * pstrSem, U32 uiDelayTick)
+{
+	NIX_LIST *pstrList;
+	NIX_LIST *pstrNode;
+	NIX_PRIOFLAG *pstrPrioFlag;
+	U8 ucTaskPrio;
+
+	if (gpstrCurTcb == gpstrIdleTaskTcb) {
+		return RTN_FAIL;
+	}
+
+	ucTaskPrio = gpstrCurTcb->ucTaskPrio;
+	pstrList = &gstrReadyTab.astrList[ucTaskPrio];
+	pstrPrioFlag = &gstrReadyTab.strFlag;
+
+	pstrNode = NIX_TaskDelFromSchedTab(pstrList, pstrPrioFlag, ucTaskPrio);
+	gpstrCurTcb->strTaskOpt.ucTaskSta &= ~((U8) TASKREADY);
+
+	gpstrCurTcb->strTaskOpt.uiDelayTick = uiDelayTick;
+
+	if (uiDelayTick != SEMWAITFEV) {
+		gpstrCurTcb->uiStillTick = guiTick + uiDelayTick;
+		NIX_TaskAddToDelayTab(pstrNode);
+		gpstrCurTcb->uiTaskFlag |= DELAYQUEFLAG;
+	}
+
+	NIX_TaskAddToSemTab(gpstrCurTcb, pstrSem);
+
+	gpstrCurTcb->strTaskOpt.ucTaskSta |= TASKPEND;
+
+	return RTN_SUCD;
+}
+
 
 #ifdef NIX_INCLUDETASKHOOK
 
