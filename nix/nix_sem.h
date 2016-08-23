@@ -25,5 +25,13 @@
 #define SEMNOWAIT           0           /* ²»µÈ´ý */
 #define SEMWAITFEV          0xFFFFFFFF  /* ÓÀ¾ÃµÈ´ý */
 
+/****************************************************************************/
+extern NIX_SEM* NIX_SemCreat(NIX_SEM * pstrSem, U32 uiSemOpt, U32 uiInitVal);
+extern U32 NIX_SemDelete(NIX_SEM * pstrSem);
+extern U32 NIX_SemFlush(NIX_SEM * pstrSem);
+extern U32 NIX_SemTake(NIX_SEM * pstrSem, U32 uiDelayTick);
+extern U32 NIX_SemGive(NIX_SEM * pstrSem);
+
+
 #endif
 
