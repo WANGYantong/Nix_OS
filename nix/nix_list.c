@@ -72,8 +72,7 @@ NIX_LIST *NIX_ListNodeDelete(NIX_LIST * pstrList)
 //         pstrNewNode-新插入的节点指针
 //返回值  :none
 /**********************************************/
-void NIX_ListNodeInsert(NIX_LIST * pstrList, NIX_LIST * pstrNode,
-			NIX_LIST * pstrNewNode)
+void NIX_ListNodeInsert(NIX_LIST * pstrList, NIX_LIST * pstrNode, NIX_LIST * pstrNewNode)
 {
 	//基准节点不是根节点
 	if (pstrList != pstrNode) {
