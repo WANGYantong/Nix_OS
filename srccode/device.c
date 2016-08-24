@@ -14,7 +14,10 @@ void DEV_SoftwareInit(void)
 {
 	DEV_BufferInit(&gstrBufPool);	//初始化消息缓冲池
 
-	(void) NIX_QueCreate(&gstrSerialMsgQue);	//创建打印消息的队列
+	gpstrSerialMsgQue = NIX_QueCreate((NIX_QUE *) NULL);	//创建打印消息的队列
+
+	gpstrSemSync = NIX_SemCreat((NIX_SEM *) NULL, SEMPRIO, SEMEMPTY);
+	gpstrSemMute = NIX_SemCreat((NIX_SEM *) NULL, SEMPRIO, SEMFULL);
 
 #ifdef NIX_INCLUDETASKHOOK
 	NIX_TaskCreateHookAdd(TEST_TaskCreatePrint);
@@ -44,8 +47,7 @@ void DEV_UartInit(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1
-			       | RCC_APB2Periph_AFIO, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1 | RCC_APB2Periph_AFIO, ENABLE);
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
@@ -99,7 +101,7 @@ void DEV_PutStrToMem(U8 * pvStringPt, ...)
 	pstrMsgBuf->ucLength = strlen(pstrMsgBuf->aucBuf);
 
 	/* 将buf挂入队列 */
-	(void) NIX_QuePut(&gstrSerialMsgQue, &pstrMsgBuf->strList);
+	(void) NIX_QuePut(gpstrSerialMsgQue, &pstrMsgBuf->strList);
 
 
 }
@@ -132,8 +134,7 @@ void DEV_BufferInit(BUFPOOL * pstrBufPool)
 	NIX_ListInit(&pstrBufPool->strFreeList);
 
 	for (i = 0; i < BUFPOOLNUM; i++) {
-		NIX_ListNodeAdd(&pstrBufPool->strFreeList,
-				&pstrBufPool->astrBufPool[i].strList);
+		NIX_ListNodeAdd(&pstrBufPool->strFreeList, &pstrBufPool->astrBufPool[i].strList);
 	}
 }
 

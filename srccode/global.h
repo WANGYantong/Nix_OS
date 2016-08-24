@@ -26,9 +26,10 @@ typedef struct bufpool		//消息缓冲池结构
 
 /************************************************************************/
 extern BUFPOOL gstrBufPool;
-extern NIX_QUE gstrSerialMsgQue;
+extern NIX_QUE *gpstrSerialMsgQue;
 extern NIX_TCB *gpstrSerialTaskTcb;
-extern NIX_TCB *gpstrTask4Tcb;
+extern NIX_SEM *gpstrSemMute;
+extern NIX_SEM *gpstrSemSync;
 
 /************************************************************************/
 extern void DEV_SoftwareInit(void);
@@ -44,7 +45,6 @@ extern void TEST_TestTask3(void *pvPara);
 extern void TEST_TestTask4(void *pvPara);
 extern void TEST_SerialPrintTask(void *pvPara);
 extern void TEST_TaskCreatePrint(NIX_TCB * pstrTcb);
-extern void TEST_TaskSwitchPrint(NIX_TCB * pstrOldTcb,
-				 NIX_TCB * pstrNewTcb);
+extern void TEST_TaskSwitchPrint(NIX_TCB * pstrOldTcb, NIX_TCB * pstrNewTcb);
 extern void TEST_TaskDeletePrint(NIX_TCB * pstrTcb);
 #endif

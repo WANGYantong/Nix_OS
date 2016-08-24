@@ -8,5 +8,6 @@
 #include "nix_chip.h"
 #include "nix_task.h"
 #include "nix_queue.h"
+#include "nix_sem.h"
 
 #endif

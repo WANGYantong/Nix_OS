@@ -73,7 +73,7 @@ U32 NIX_SemTake(NIX_SEM * pstrSem, U32 uiDelayTick)
 
 	if (uiDelayTick == SEMNOWAIT) {
 		if (pstrSem->uiCounter == SEMFULL) {
-			pstrSem->uiCounter == SEMEMPTY;
+			pstrSem->uiCounter = SEMEMPTY;
 			(void) NIX_IntUnLock();
 			return RTN_SUCD;
 		} else {
@@ -127,9 +127,9 @@ U32 NIX_SemGive(NIX_SEM * pstrSem)
 			(void) NIX_TaskDelFromSemTab(pstrTcb);
 
 			if ((pstrTcb->uiTaskFlag & DELAYQUEFLAG) == DELAYQUEFLAG) {
-				pstrNode = pstrTcb->strTcbQue.strQueHead;
+				pstrNode = &pstrTcb->strTcbQue.strQueHead;
 				(void) NIX_ListCurNodeDelete(&gstrDelayTab, pstrNode);
-				pstrTcb->uiTaskFlag$ = (~((U32) DELAYQUEFLAG));
+				pstrTcb->uiTaskFlag &= (~((U32) DELAYQUEFLAG));
 			}
 
 			pstrTcb->strTaskOpt.ucTaskSta &= (~((U8) TASKPEND));
@@ -167,10 +167,10 @@ U32 NIX_SemGive(NIX_SEM * pstrSem)
 /**********************************************/
 U32 NIX_SemFlushValue(NIX_SEM * pstrSem, U32 uiRtnValue)
 {
-	M_TCB *pstrTcb;
-	M_DLIST *pstrList;
-	M_DLIST *pstrNode;
-	M_PRIOFLAG *pstrPrioFlag;
+	NIX_TCB *pstrTcb;
+	NIX_LIST *pstrList;
+	NIX_LIST *pstrNode;
+	NIX_PRIOFLAG *pstrPrioFlag;
 	U8 ucTaskPrio;
 
 	if (pstrSem == NULL) {
@@ -186,9 +186,9 @@ U32 NIX_SemFlushValue(NIX_SEM * pstrSem, U32 uiRtnValue)
 			(void) NIX_TaskDelFromSemTab(pstrTcb);
 
 			if ((pstrTcb->uiTaskFlag & DELAYQUEFLAG) == DELAYQUEFLAG) {
-				pstrNode = pstrTcb->strTcbQue.strQueHead;
+				pstrNode = &pstrTcb->strTcbQue.strQueHead;
 				(void) NIX_ListCurNodeDelete(&gstrDelayTab, pstrNode);
-				pstrTcb->uiTaskFlag$ = (~((U32) DELAYQUEFLAG));
+				pstrTcb->uiTaskFlag &= (~((U32) DELAYQUEFLAG));
 			}
 
 			pstrTcb->strTaskOpt.ucTaskSta &= (~((U8) TASKPEND));

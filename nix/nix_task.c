@@ -183,6 +183,7 @@ NIX_TCB *NIX_TaskTcbInit(U8 * pucTaskName, VFUNC vfFuncPointer,
 	pstrTcb->uiTaskFlag = 0;
 	pstrTcb->uiTaskFlag |= uiTaskFlag;
 	pstrTcb->strTcbQue.pstrTcb = pstrTcb;
+	pstrTcb->strSemQue.pstrTcb = pstrTcb;
 	pstrTcb->ucTaskPrio = ucTaskPrio;
 	pstrTcb->pucTaskName = pucTaskName;
 

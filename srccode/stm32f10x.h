@@ -8284,6 +8284,6 @@ extern "C" {
 #endif				/* __STM32F10x_H */
 /**
   * @}
-    *//**
+          *//**
   * @}
-  *//******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/
+      *//******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

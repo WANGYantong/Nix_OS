@@ -11,8 +11,7 @@
 
 extern NIX_TCB *NIX_TaskTcbInit(U8 * pucTaskName, VFUNC vfFuncPointer,
 				void *pvPara, U8 * pucTaskStack,
-				U32 uiStackSize, U8 ucTaskPrio,
-				NIX_TASKOPT * pstrTaskOpt);
+				U32 uiStackSize, U8 ucTaskPrio, NIX_TASKOPT * pstrTaskOpt);
 extern U32 NIX_TaskPend(NIX_SEM * pstrSem, U32 uiDelayTick);
 
 #ifdef NIX_INCLUDETASKHOOK

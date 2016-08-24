@@ -33,24 +33,17 @@ extern void NIX_BeforeRootTask(void *pvPara);
 extern void NIX_TaskSwitch(NIX_TCB * pstrTcb);
 extern void NIX_TaskStart(NIX_TCB * pstrTcb);
 extern void NIX_TaskSchedTabInit(NIX_TASKSCHEDTAB * pstrSchedTab);
-extern void NIX_TaskAddToSchedTab(NIX_LIST * pstrList,
-				  NIX_LIST * pstrNode,
-				  NIX_PRIOFLAG * pstrPrioFlag,
-				  U8 ucTaskPrio);
+extern void NIX_TaskAddToSchedTab(NIX_LIST * pstrList, NIX_LIST * pstrNode, NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio);
 extern void NIX_TaskAddToDelayTab(NIX_LIST * pstrNode);
-extern NIX_LIST *NIX_TaskDelFromSchedTab(NIX_LIST * pstrList,
-					 NIX_PRIOFLAG * pstrPrioFlag,
-					 U8 ucTaskPrio);
+extern NIX_LIST *NIX_TaskDelFromSchedTab(NIX_LIST * pstrList, NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio);
 extern void NIX_TaskSched(void);
 extern NIX_TCB *NIX_TaskReadyTabSched(void);
 extern void NIX_TaskDelayTabSched(void);
 extern void NIX_TaskAddToSemTab(NIX_TCB * pstrTcb, NIX_SEM * pstrSem);
-extern NIX_LIST* NIX_TaskDelFromSemTab(NIX_TCB * pstrTcb);
-extern NIX_TCB* NIX_SemGetAcitveTask(NIX_SEM * pstrSem);
-extern void NIX_TaskSetPrioFlag(NIX_PRIOFLAG * pstrPrioFlag,
-				U8 ucTaskPrio);
-extern void NIX_TaskClrPrioFlag(NIX_PRIOFLAG * pstrPrioFlag,
-				U8 ucTaskPrio);
+extern NIX_LIST *NIX_TaskDelFromSemTab(NIX_TCB * pstrTcb);
+extern NIX_TCB *NIX_SemGetAcitveTask(NIX_SEM * pstrSem);
+extern void NIX_TaskSetPrioFlag(NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio);
+extern void NIX_TaskClrPrioFlag(NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio);
 extern U8 NIX_TaskGetHighestPrio(NIX_PRIOFLAG * pstrPrioFlag);
 extern U32 NIX_GetXpsr(void);
 extern void NIX_SwitchToTask(void);

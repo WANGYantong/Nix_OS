@@ -19,8 +19,7 @@
 
 extern U32 guiIntLockCounter;
 
-extern void NIX_TaskStackInit(NIX_TCB * pstrTcb, VFUNC vfFuncPointer,
-			      void *pvPara);
+extern void NIX_TaskStackInit(NIX_TCB * pstrTcb, VFUNC vfFuncPointer, void *pvPara);
 extern void NIX_SystemHardwareInit(void);
 extern void NIX_TickTimerInit(void);
 extern void NIX_PendSvIsrInit(void);

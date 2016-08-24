@@ -88,6 +88,6 @@ extern "C" {
 #endif /*__SYSTEM_STM32F10X_H */
 /**
   * @}
-  *//**
+      *//**
   * @}
-  *//******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/
+      *//******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

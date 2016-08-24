@@ -164,8 +164,8 @@ uint32_t SystemCoreClock = SYSCLK_FREQ_72MHz;	/*!< System Clock Frequency (Core 
 uint32_t SystemCoreClock = HSI_VALUE;	/*!< System Clock Frequency (Core Clock) */
 #endif
 
-__I uint8_t AHBPrescTable[16] =
-    { 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9 };
+__I uint8_t AHBPrescTable[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9 };
+
 /**
   * @}
   */
@@ -309,8 +309,7 @@ void SystemCoreClockUpdate(void)
 	uint32_t tmp = 0, pllmull = 0, pllsource = 0;
 
 #ifdef  STM32F10X_CL
-	uint32_t prediv1source = 0, prediv1factor = 0, prediv2factor =
-	    0, pll2mull = 0;
+	uint32_t prediv1source = 0, prediv1factor = 0, prediv2factor = 0, pll2mull = 0;
 #endif				/* STM32F10X_CL */
 
 #if defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || (defined STM32F10X_HD_VL)
@@ -341,16 +340,13 @@ void SystemCoreClockUpdate(void)
 			SystemCoreClock = (HSI_VALUE >> 1) * pllmull;
 		} else {
 #if defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || (defined STM32F10X_HD_VL)
-			prediv1factor =
-			    (RCC->CFGR2 & RCC_CFGR2_PREDIV1) + 1;
+			prediv1factor = (RCC->CFGR2 & RCC_CFGR2_PREDIV1) + 1;
 			/* HSE oscillator clock selected as PREDIV1 clock entry */
-			SystemCoreClock =
-			    (HSE_VALUE / prediv1factor) * pllmull;
+			SystemCoreClock = (HSE_VALUE / prediv1factor) * pllmull;
 #else
 			/* HSE selected as PLL clock entry */
 			if ((RCC->CFGR & RCC_CFGR_PLLXTPRE) != (uint32_t) RESET) {	/* HSE oscillator clock divided by 2 */
-				SystemCoreClock =
-				    (HSE_VALUE >> 1) * pllmull;
+				SystemCoreClock = (HSE_VALUE >> 1) * pllmull;
 			} else {
 				SystemCoreClock = HSE_VALUE * pllmull;
 			}
@@ -372,25 +368,17 @@ void SystemCoreClockUpdate(void)
 
 			/* Get PREDIV1 clock source and division factor */
 			prediv1source = RCC->CFGR2 & RCC_CFGR2_PREDIV1SRC;
-			prediv1factor =
-			    (RCC->CFGR2 & RCC_CFGR2_PREDIV1) + 1;
+			prediv1factor = (RCC->CFGR2 & RCC_CFGR2_PREDIV1) + 1;
 
 			if (prediv1source == 0) {
 				/* HSE oscillator clock selected as PREDIV1 clock entry */
-				SystemCoreClock =
-				    (HSE_VALUE / prediv1factor) * pllmull;
+				SystemCoreClock = (HSE_VALUE / prediv1factor) * pllmull;
 			} else {	/* PLL2 clock selected as PREDIV1 clock entry */
 
 				/* Get PREDIV2 division factor and PLL2 multiplication factor */
-				prediv2factor =
-				    ((RCC->
-				      CFGR2 & RCC_CFGR2_PREDIV2) >> 4) + 1;
-				pll2mull =
-				    ((RCC->
-				      CFGR2 & RCC_CFGR2_PLL2MUL) >> 8) + 2;
-				SystemCoreClock =
-				    (((HSE_VALUE / prediv2factor) *
-				      pll2mull) / prediv1factor) * pllmull;
+				prediv2factor = ((RCC->CFGR2 & RCC_CFGR2_PREDIV2) >> 4) + 1;
+				pll2mull = ((RCC->CFGR2 & RCC_CFGR2_PLL2MUL) >> 8) + 2;
+				SystemCoreClock = (((HSE_VALUE / prediv2factor) * pll2mull) / prediv1factor) * pllmull;
 			}
 		}
 #endif				/* STM32F10X_CL */
@@ -549,8 +537,7 @@ static void SetSysClockToHSE(void)
 		RCC->CFGR |= (uint32_t) RCC_CFGR_SW_HSE;
 
 		/* Wait till HSE is used as system clock source */
-		while ((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) !=
-		       (uint32_t) 0x04) {
+		while ((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) != (uint32_t) 0x04) {
 		}
 	} else {		/* If HSE fails to start-up, the application will have wrong clock 
 				   configuration. User can add here some code to deal with this error */
@@ -607,24 +594,16 @@ static void SetSysClockTo24(void)
 #ifdef STM32F10X_CL
 		/* Configure PLLs ------------------------------------------------------ */
 		/* PLL configuration: PLLCLK = PREDIV1 * 6 = 24 MHz */
-		RCC->CFGR &=
-		    (uint32_t) ~ (RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC |
-				  RCC_CFGR_PLLMULL);
-		RCC->CFGR |=
-		    (uint32_t) (RCC_CFGR_PLLXTPRE_PREDIV1 |
-				RCC_CFGR_PLLSRC_PREDIV1 |
-				RCC_CFGR_PLLMULL6);
+		RCC->CFGR &= (uint32_t) ~ (RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL);
+		RCC->CFGR |= (uint32_t) (RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLMULL6);
 
 		/* PLL2 configuration: PLL2CLK = (HSE / 5) * 8 = 40 MHz */
 		/* PREDIV1 configuration: PREDIV1CLK = PLL2 / 10 = 4 MHz */
 		RCC->CFGR2 &=
-		    (uint32_t) ~ (RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL |
-				  RCC_CFGR2_PREDIV1 |
-				  RCC_CFGR2_PREDIV1SRC);
+		    (uint32_t) ~ (RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL | RCC_CFGR2_PREDIV1 | RCC_CFGR2_PREDIV1SRC);
 		RCC->CFGR2 |=
 		    (uint32_t) (RCC_CFGR2_PREDIV2_DIV5 | RCC_CFGR2_PLL2MUL8
-				| RCC_CFGR2_PREDIV1SRC_PLL2 |
-				RCC_CFGR2_PREDIV1_DIV10);
+				| RCC_CFGR2_PREDIV1SRC_PLL2 | RCC_CFGR2_PREDIV1_DIV10);
 
 		/* Enable PLL2 */
 		RCC->CR |= RCC_CR_PLL2ON;
@@ -633,24 +612,12 @@ static void SetSysClockTo24(void)
 		}
 #elif defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD_VL)
 		/*  PLL configuration:  = (HSE / 2) * 6 = 24 MHz */
-		RCC->CFGR &=
-		    (uint32_t) ((uint32_t) ~
-				(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE |
-				 RCC_CFGR_PLLMULL));
-		RCC->CFGR |=
-		    (uint32_t) (RCC_CFGR_PLLSRC_PREDIV1 |
-				RCC_CFGR_PLLXTPRE_PREDIV1_Div2 |
-				RCC_CFGR_PLLMULL6);
+		RCC->CFGR &= (uint32_t) ((uint32_t) ~ (RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMULL));
+		RCC->CFGR |= (uint32_t) (RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1_Div2 | RCC_CFGR_PLLMULL6);
 #else
 		/*  PLL configuration:  = (HSE / 2) * 6 = 24 MHz */
-		RCC->CFGR &=
-		    (uint32_t) ((uint32_t) ~
-				(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE |
-				 RCC_CFGR_PLLMULL));
-		RCC->CFGR |=
-		    (uint32_t) (RCC_CFGR_PLLSRC_HSE |
-				RCC_CFGR_PLLXTPRE_HSE_Div2 |
-				RCC_CFGR_PLLMULL6);
+		RCC->CFGR &= (uint32_t) ((uint32_t) ~ (RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMULL));
+		RCC->CFGR |= (uint32_t) (RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLXTPRE_HSE_Div2 | RCC_CFGR_PLLMULL6);
 #endif				/* STM32F10X_CL */
 
 		/* Enable PLL */
@@ -665,8 +632,7 @@ static void SetSysClockTo24(void)
 		RCC->CFGR |= (uint32_t) RCC_CFGR_SW_PLL;
 
 		/* Wait till PLL is used as system clock source */
-		while ((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) !=
-		       (uint32_t) 0x08) {
+		while ((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) != (uint32_t) 0x08) {
 		}
 	} else {		/* If HSE fails to start-up, the application will have wrong clock 
 				   configuration. User can add here some code to deal with this error */
@@ -722,25 +688,17 @@ static void SetSysClockTo36(void)
 		/* Configure PLLs ------------------------------------------------------ */
 
 		/* PLL configuration: PLLCLK = PREDIV1 * 9 = 36 MHz */
-		RCC->CFGR &=
-		    (uint32_t) ~ (RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC |
-				  RCC_CFGR_PLLMULL);
-		RCC->CFGR |=
-		    (uint32_t) (RCC_CFGR_PLLXTPRE_PREDIV1 |
-				RCC_CFGR_PLLSRC_PREDIV1 |
-				RCC_CFGR_PLLMULL9);
+		RCC->CFGR &= (uint32_t) ~ (RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL);
+		RCC->CFGR |= (uint32_t) (RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLMULL9);
 
 		/*!< PLL2 configuration: PLL2CLK = (HSE / 5) * 8 = 40 MHz */
 		/* PREDIV1 configuration: PREDIV1CLK = PLL2 / 10 = 4 MHz */
 
 		RCC->CFGR2 &=
-		    (uint32_t) ~ (RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL |
-				  RCC_CFGR2_PREDIV1 |
-				  RCC_CFGR2_PREDIV1SRC);
+		    (uint32_t) ~ (RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL | RCC_CFGR2_PREDIV1 | RCC_CFGR2_PREDIV1SRC);
 		RCC->CFGR2 |=
 		    (uint32_t) (RCC_CFGR2_PREDIV2_DIV5 | RCC_CFGR2_PLL2MUL8
-				| RCC_CFGR2_PREDIV1SRC_PLL2 |
-				RCC_CFGR2_PREDIV1_DIV10);
+				| RCC_CFGR2_PREDIV1SRC_PLL2 | RCC_CFGR2_PREDIV1_DIV10);
 
 		/* Enable PLL2 */
 		RCC->CR |= RCC_CR_PLL2ON;
@@ -750,14 +708,8 @@ static void SetSysClockTo36(void)
 
 #else
 		/*  PLL configuration: PLLCLK = (HSE / 2) * 9 = 36 MHz */
-		RCC->CFGR &=
-		    (uint32_t) ((uint32_t) ~
-				(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE |
-				 RCC_CFGR_PLLMULL));
-		RCC->CFGR |=
-		    (uint32_t) (RCC_CFGR_PLLSRC_HSE |
-				RCC_CFGR_PLLXTPRE_HSE_Div2 |
-				RCC_CFGR_PLLMULL9);
+		RCC->CFGR &= (uint32_t) ((uint32_t) ~ (RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMULL));
+		RCC->CFGR |= (uint32_t) (RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLXTPRE_HSE_Div2 | RCC_CFGR_PLLMULL9);
 #endif				/* STM32F10X_CL */
 
 		/* Enable PLL */
@@ -772,8 +724,7 @@ static void SetSysClockTo36(void)
 		RCC->CFGR |= (uint32_t) RCC_CFGR_SW_PLL;
 
 		/* Wait till PLL is used as system clock source */
-		while ((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) !=
-		       (uint32_t) 0x08) {
+		while ((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) != (uint32_t) 0x08) {
 		}
 	} else {		/* If HSE fails to start-up, the application will have wrong clock 
 				   configuration. User can add here some code to deal with this error */
@@ -831,13 +782,10 @@ static void SetSysClockTo48(void)
 		/* PREDIV1 configuration: PREDIV1CLK = PLL2 / 5 = 8 MHz */
 
 		RCC->CFGR2 &=
-		    (uint32_t) ~ (RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL |
-				  RCC_CFGR2_PREDIV1 |
-				  RCC_CFGR2_PREDIV1SRC);
+		    (uint32_t) ~ (RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL | RCC_CFGR2_PREDIV1 | RCC_CFGR2_PREDIV1SRC);
 		RCC->CFGR2 |=
 		    (uint32_t) (RCC_CFGR2_PREDIV2_DIV5 | RCC_CFGR2_PLL2MUL8
-				| RCC_CFGR2_PREDIV1SRC_PLL2 |
-				RCC_CFGR2_PREDIV1_DIV5);
+				| RCC_CFGR2_PREDIV1SRC_PLL2 | RCC_CFGR2_PREDIV1_DIV5);
 
 		/* Enable PLL2 */
 		RCC->CR |= RCC_CR_PLL2ON;
@@ -847,21 +795,12 @@ static void SetSysClockTo48(void)
 
 
 		/* PLL configuration: PLLCLK = PREDIV1 * 6 = 48 MHz */
-		RCC->CFGR &=
-		    (uint32_t) ~ (RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC |
-				  RCC_CFGR_PLLMULL);
-		RCC->CFGR |=
-		    (uint32_t) (RCC_CFGR_PLLXTPRE_PREDIV1 |
-				RCC_CFGR_PLLSRC_PREDIV1 |
-				RCC_CFGR_PLLMULL6);
+		RCC->CFGR &= (uint32_t) ~ (RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL);
+		RCC->CFGR |= (uint32_t) (RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLMULL6);
 #else
 		/*  PLL configuration: PLLCLK = HSE * 6 = 48 MHz */
-		RCC->CFGR &=
-		    (uint32_t) ((uint32_t) ~
-				(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE |
-				 RCC_CFGR_PLLMULL));
-		RCC->CFGR |=
-		    (uint32_t) (RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL6);
+		RCC->CFGR &= (uint32_t) ((uint32_t) ~ (RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMULL));
+		RCC->CFGR |= (uint32_t) (RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL6);
 #endif				/* STM32F10X_CL */
 
 		/* Enable PLL */
@@ -876,8 +815,7 @@ static void SetSysClockTo48(void)
 		RCC->CFGR |= (uint32_t) RCC_CFGR_SW_PLL;
 
 		/* Wait till PLL is used as system clock source */
-		while ((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) !=
-		       (uint32_t) 0x08) {
+		while ((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) != (uint32_t) 0x08) {
 		}
 	} else {		/* If HSE fails to start-up, the application will have wrong clock 
 				   configuration. User can add here some code to deal with this error */
@@ -936,13 +874,10 @@ static void SetSysClockTo56(void)
 		/* PREDIV1 configuration: PREDIV1CLK = PLL2 / 5 = 8 MHz */
 
 		RCC->CFGR2 &=
-		    (uint32_t) ~ (RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL |
-				  RCC_CFGR2_PREDIV1 |
-				  RCC_CFGR2_PREDIV1SRC);
+		    (uint32_t) ~ (RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL | RCC_CFGR2_PREDIV1 | RCC_CFGR2_PREDIV1SRC);
 		RCC->CFGR2 |=
 		    (uint32_t) (RCC_CFGR2_PREDIV2_DIV5 | RCC_CFGR2_PLL2MUL8
-				| RCC_CFGR2_PREDIV1SRC_PLL2 |
-				RCC_CFGR2_PREDIV1_DIV5);
+				| RCC_CFGR2_PREDIV1SRC_PLL2 | RCC_CFGR2_PREDIV1_DIV5);
 
 		/* Enable PLL2 */
 		RCC->CR |= RCC_CR_PLL2ON;
@@ -952,21 +887,12 @@ static void SetSysClockTo56(void)
 
 
 		/* PLL configuration: PLLCLK = PREDIV1 * 7 = 56 MHz */
-		RCC->CFGR &=
-		    (uint32_t) ~ (RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC |
-				  RCC_CFGR_PLLMULL);
-		RCC->CFGR |=
-		    (uint32_t) (RCC_CFGR_PLLXTPRE_PREDIV1 |
-				RCC_CFGR_PLLSRC_PREDIV1 |
-				RCC_CFGR_PLLMULL7);
+		RCC->CFGR &= (uint32_t) ~ (RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL);
+		RCC->CFGR |= (uint32_t) (RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLMULL7);
 #else
 		/* PLL configuration: PLLCLK = HSE * 7 = 56 MHz */
-		RCC->CFGR &=
-		    (uint32_t) ((uint32_t) ~
-				(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE |
-				 RCC_CFGR_PLLMULL));
-		RCC->CFGR |=
-		    (uint32_t) (RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL7);
+		RCC->CFGR &= (uint32_t) ((uint32_t) ~ (RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMULL));
+		RCC->CFGR |= (uint32_t) (RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL7);
 
 #endif				/* STM32F10X_CL */
 
@@ -982,8 +908,7 @@ static void SetSysClockTo56(void)
 		RCC->CFGR |= (uint32_t) RCC_CFGR_SW_PLL;
 
 		/* Wait till PLL is used as system clock source */
-		while ((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) !=
-		       (uint32_t) 0x08) {
+		while ((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) != (uint32_t) 0x08) {
 		}
 	} else {		/* If HSE fails to start-up, the application will have wrong clock 
 				   configuration. User can add here some code to deal with this error */
@@ -1043,13 +968,10 @@ static void SetSysClockTo72(void)
 		/* PREDIV1 configuration: PREDIV1CLK = PLL2 / 5 = 8 MHz */
 
 		RCC->CFGR2 &=
-		    (uint32_t) ~ (RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL |
-				  RCC_CFGR2_PREDIV1 |
-				  RCC_CFGR2_PREDIV1SRC);
+		    (uint32_t) ~ (RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL | RCC_CFGR2_PREDIV1 | RCC_CFGR2_PREDIV1SRC);
 		RCC->CFGR2 |=
 		    (uint32_t) (RCC_CFGR2_PREDIV2_DIV5 | RCC_CFGR2_PLL2MUL8
-				| RCC_CFGR2_PREDIV1SRC_PLL2 |
-				RCC_CFGR2_PREDIV1_DIV5);
+				| RCC_CFGR2_PREDIV1SRC_PLL2 | RCC_CFGR2_PREDIV1_DIV5);
 
 		/* Enable PLL2 */
 		RCC->CR |= RCC_CR_PLL2ON;
@@ -1059,21 +981,12 @@ static void SetSysClockTo72(void)
 
 
 		/* PLL configuration: PLLCLK = PREDIV1 * 9 = 72 MHz */
-		RCC->CFGR &=
-		    (uint32_t) ~ (RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC |
-				  RCC_CFGR_PLLMULL);
-		RCC->CFGR |=
-		    (uint32_t) (RCC_CFGR_PLLXTPRE_PREDIV1 |
-				RCC_CFGR_PLLSRC_PREDIV1 |
-				RCC_CFGR_PLLMULL9);
+		RCC->CFGR &= (uint32_t) ~ (RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL);
+		RCC->CFGR |= (uint32_t) (RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLMULL9);
 #else
 		/*  PLL configuration: PLLCLK = HSE * 9 = 72 MHz */
-		RCC->CFGR &=
-		    (uint32_t) ((uint32_t) ~
-				(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE |
-				 RCC_CFGR_PLLMULL));
-		RCC->CFGR |=
-		    (uint32_t) (RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9);
+		RCC->CFGR &= (uint32_t) ((uint32_t) ~ (RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMULL));
+		RCC->CFGR |= (uint32_t) (RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9);
 #endif				/* STM32F10X_CL */
 
 		/* Enable PLL */
@@ -1088,8 +1001,7 @@ static void SetSysClockTo72(void)
 		RCC->CFGR |= (uint32_t) RCC_CFGR_SW_PLL;
 
 		/* Wait till PLL is used as system clock source */
-		while ((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) !=
-		       (uint32_t) 0x08) {
+		while ((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) != (uint32_t) 0x08) {
 		}
 	} else {		/* If HSE fails to start-up, the application will have wrong clock 
 				   configuration. User can add here some code to deal with this error */

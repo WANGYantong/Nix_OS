@@ -498,7 +498,7 @@ NIX_LIST *NIX_TaskDelFromSemTab(NIX_TCB * pstrTcb)
 {
 	NIX_SEM *pstrSem;
 	NIX_LIST *pstrList;
-	NIX_LIST *pstrPrioFlag;
+	NIX_PRIOFLAG *pstrPrioFlag;
 	U8 ucTaskPrio;
 
 	pstrSem = pstrTcb->pstrSem;
@@ -508,11 +508,11 @@ NIX_LIST *NIX_TaskDelFromSemTab(NIX_TCB * pstrTcb)
 		pstrList = &pstrSem->strSemtab.astrList[ucTaskPrio];
 		pstrPrioFlag = &pstrSem->strSemtab.strFlag;
 
-		NIX_TaskDelFromSchedTab(pstrList, pstrPrioFlag, ucTaskPrio);
+		return NIX_TaskDelFromSchedTab(pstrList, pstrPrioFlag, ucTaskPrio);
 	} else {
 		pstrList = &pstrSem->strSemtab.astrList[LOWESTPRIO];
 
-		NIX_ListNodeDelete(NIX_LIST * pstrList);
+		return NIX_ListNodeDelete(pstrList);
 	}
 }
 

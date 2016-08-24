@@ -27,8 +27,7 @@ typedef void (*VFHDLT) (NIX_TCB *);	//任务删除钩子函数类型
 
 extern NIX_TCB *NIX_TaskCreat(U8 * pucTaskName, VFUNC vfFuncPointer,
 			      void *pvPara, U8 * pucTaskStack,
-			      U32 uiStackSize, U8 ucTaskPrio,
-			      NIX_TASKOPT * pstrTaskOpt);
+			      U32 uiStackSize, U8 ucTaskPrio, NIX_TASKOPT * pstrTaskOpt);
 extern U32 NIX_TaskDelete(NIX_TCB * pstrTcb);
 extern void NIX_TaskSelfDelete(void);
 extern U32 NIX_TaskDelay(U32 uiDelayTick);
