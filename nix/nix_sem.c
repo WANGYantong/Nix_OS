@@ -5,20 +5,22 @@
 //函数功能:创建信号量
 //输入参数:pstrSem:分配给信号量的内存地址
 //         uiSemOpt:信号量调度方式:FIFO or PRIO
-//         uiInitVal:信号量初始值:FULL or EMPTY
+//         uiInitVal:信号量初始值
 //返回值  :创建的信号量指针
 /**********************************************/
 NIX_SEM *NIX_SemCreat(NIX_SEM * pstrSem, U32 uiSemOpt, U32 uiInitVal)
 {
 	U8 *pucSemMemAddr;
 
-	if (((uiSemOpt & SEMSCHEDOPTMASK) != SEMFIFO)
-	    && ((uiSemOpt & SEMSCHEDOPTMASK) != SEMPRIO)) {
+	if ((((uiSemOpt & SEMSCHEDOPTMASK) != SEMFIFO) && ((uiSemOpt & SEMSCHEDOPTMASK) != SEMPRIO))
+	    || (((uiSemOpt & SEMTYPEMASK) != SEMBIN) && ((uiSemOpt & SEMTYPEMASK) != SEMCNT))) {
 		return (NIX_SEM *) NULL;
 	}
 
-	if ((uiInitVal != SEMEMPTY) && (uiInitVal != SEMFULL)) {
-		return (NIX_SEM *) NULL;
+	if ((uiSemOpt & SEMTYPEMASK) == SEMBIN) {
+		if ((uiInitVal != SEMEMPTY) && (uiInitVal != SEMFULL)) {
+			return (NIX_SEM *) NULL;
+		}
 	}
 
 	if (pstrSem == NULL) {
@@ -72,30 +74,60 @@ U32 NIX_SemTake(NIX_SEM * pstrSem, U32 uiDelayTick)
 	(void) NIX_IntLock();
 
 	if (uiDelayTick == SEMNOWAIT) {
-		if (pstrSem->uiCounter == SEMFULL) {
-			pstrSem->uiCounter = SEMEMPTY;
-			(void) NIX_IntUnLock();
-			return RTN_SUCD;
+		if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMBIN) {
+			if (pstrSem->uiCounter == SEMFULL) {
+				pstrSem->uiCounter = SEMEMPTY;
+				(void) NIX_IntUnLock();
+				return RTN_SUCD;
+			} else {
+				(void) NIX_IntUnLock();
+				return RTN_SMTKRT;
+			}
 		} else {
-			(void) NIX_IntUnLock();
-			return RTN_SMTKRT;
+			if (pstrSem->uiCounter != SEMEMPTY) {
+				pstrSem->uiCounter--;
+				(void) NIX_IntUnLock();
+				return RTN_SUCD;
+			} else {
+				(void) NIX_IntUnLock();
+				return RTN_SMTKRT;
+			}
 		}
 	} else {
-		if (pstrSem->uiCounter == SEMFULL) {
-			pstrSem->uiCounter = SEMEMPTY;
-			(void) NIX_IntUnLock();
-			return RTN_SUCD;
-		} else {
-			if (NIX_TaskPend(pstrSem, uiDelayTick) == RTN_FAIL) {
+		if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMBIN) {
+			if (pstrSem->uiCounter == SEMFULL) {
+				pstrSem->uiCounter = SEMEMPTY;
 				(void) NIX_IntUnLock();
-				return RTN_FAIL;
+				return RTN_SUCD;
+			} else {
+				if (NIX_TaskPend(pstrSem, uiDelayTick) == RTN_FAIL) {
+					(void) NIX_IntUnLock();
+					return RTN_FAIL;
+				}
+
+				(void) NIX_IntLock();
+
+				NIX_TaskSwiSched();
+
+				return gpstrCurTcb->strTaskOpt.uiDelayTick;
 			}
+		} else {
+			if (pstrSem->uiCounter != SEMEMPTY) {
+				pstrSem->uiCounter--;
+				(void) NIX_IntUnLock();
+				return RTN_SUCD;
+			} else {
+				if (NIX_TaskPend(pstrSem, uiDelayTick) == RTN_FAIL) {
+					(void) NIX_IntUnLock();
+					return RTN_FAIL;
+				}
 
-			(void) NIX_IntLock();
+				(void) NIX_IntLock();
 
-			NIX_TaskSwiSched();
+				NIX_TaskSwiSched();
 
-			return gpstrCurTcb->strTaskOpt.uiDelayTick;
+				return gpstrCurTcb->strTaskOpt.uiDelayTick;
+			}
 		}
 	}
 }
@@ -112,11 +144,14 @@ U32 NIX_SemGive(NIX_SEM * pstrSem)
 	NIX_LIST *pstrList;
 	NIX_LIST *pstrNode;
 	NIX_PRIOFLAG *pstrPrioFlag;
+	U32 uiRtn;
 	U8 ucTaskPrio;
 
 	if (pstrSem == NULL) {
 		return RTN_FAIL;
 	}
+
+	uiRtn = RTN_SUCD;
 
 	(void) NIX_IntLock();
 
@@ -148,15 +183,27 @@ U32 NIX_SemGive(NIX_SEM * pstrSem)
 
 			NIX_TaskSwiSched();
 
-			return RTN_SUCD;
+			return uiRtn;
 		} else {
-			pstrSem->uiCounter = SEMFULL;
+			if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMBIN) {
+				pstrSem->uiCounter = SEMFULL;
+			} else {
+				pstrSem->uiCounter++;
+			}
+		}
+	} else {
+		if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMCNT) {
+			if (pstrSem->uiCounter != SEMFULL) {
+				pstrSem->uiCounter++;
+			} else {
+				uiRtn = RTN_SMGVOV;
+			}
 		}
 	}
 
 	(void) NIX_IntUnLock();
 
-	return RTN_SUCD;
+	return uiRtn;
 }
 
 /**********************************************/

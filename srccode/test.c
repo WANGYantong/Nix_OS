@@ -3,8 +3,7 @@
 NIX_QUE *gpstrSerialMsgQue;	/* 串口打印消息队列指针 */
 NIX_TCB *gpstrSerialTaskTcb;	/* 串口打印任务TCB指针 */
 
-NIX_SEM *gpstrSemSync;		/*同步信号量 */
-NIX_SEM *gpstrSemMute;		/*互斥信号量 */
+NIX_SEM *gpstrSemCnt;
 
 /**********************************************/
 //函数功能:测试任务1
@@ -13,54 +12,17 @@ NIX_SEM *gpstrSemMute;		/*互斥信号量 */
 /**********************************************/
 void TEST_TestTask1(void *pvPara)
 {
-	U8 i;
-
-	i = 0;
-
 	while (1) {
+		/* 获取到信号量才运行 */
+		(void) NIX_SemTake(gpstrSemCnt, SEMWAITFEV);
+
 		/* 任务打印 */
-		DEV_PutStrToMem((U8 *) "\r\nTask1 is running ! Tick is: %d", NIX_GetSystemTick());
+		DEV_PutStrToMem((U8 *) "\r\nTask1 is running! Tick is: %d", NIX_GetSystemTick());
 
-		/* 任务运行1.5秒 */
-		TEST_TaskRun(1500);
-
-		/* 任务延迟2秒 */
-		(void) NIX_TaskDelay(200);
-
-		/* 前10次, 每次运行释放一次gpstrSemSync信号量 */
-		if (i < 10) {
-			i++;
-
-			/* 任务打印 */
-			DEV_PutStrToMem((U8 *) "\r\nTask1 give gpstrSemSync %d! Tick is: %d", i, NIX_GetSystemTick());
-
-			/* 同步其它任务 */
-			(void) NIX_SemGive(gpstrSemSync);
-		}
-		/* 接下来5次, 每次运行flush一次gpstrSemSync信号量 */
-		else if (i < 15) {
-			i++;
-
-			/* 任务打印 */
-			DEV_PutStrToMem((U8 *) "\r\nTask1 flush gpstrSemSync %d! Tick is: %d", i, NIX_GetSystemTick());
-
-			/* 释放所有被gpstrSemSync阻塞的任务 */
-			(void) NIX_SemFlush(gpstrSemSync);
-		}
-		/* 删除gpstrSemSync信号量 */
-		else if (15 == i) {
-			i++;
-
-			/* 任务打印 */
-			DEV_PutStrToMem((U8 *) "\r\nTask1 delete gpstrSemSync %d! Tick is: %d", i, NIX_GetSystemTick());
-
-			/* 删除gpstrSemSync信号量 */
-			(void) NIX_SemDelete(gpstrSemSync);
-		}
+		/* 任务延迟0.5秒 */
+		(void) NIX_TaskDelay(50);
 	}
 }
-
-
 
 /**********************************************/
 //函数功能:测试任务2
@@ -69,58 +31,24 @@ void TEST_TestTask1(void *pvPara)
 /**********************************************/
 void TEST_TestTask2(void *pvPara)
 {
-	U8 i;
-
-	i = 0;
-
 	while (1) {
-		/* 前3次获取gpstrSemMute信号量, 与TEST_TestTask3任务互锁 */
-		if (i < 3) {
-			i++;
+		/* 任务打印 */
+		DEV_PutStrToMem((U8 *) "\r\nTask2 is running! Tick is: %d", NIX_GetSystemTick());
 
-			/* 获取到信号量才运行 */
-			(void) NIX_SemTake(gpstrSemMute, SEMWAITFEV);
+		/* 任务运行1秒 */
+		TEST_TaskRun(1000);
 
-			/* 任务打印 */
-			DEV_PutStrToMem((U8 *) "\r\nTask2 take gpstrSemMute %d! Tick is: %d", i, NIX_GetSystemTick());
+		/* 连续释放计数信号量, 激活其它任务 */
+		(void) NIX_SemGive(gpstrSemCnt);
+		(void) NIX_SemGive(gpstrSemCnt);
+		(void) NIX_SemGive(gpstrSemCnt);
+		(void) NIX_SemGive(gpstrSemCnt);
 
-			/* 任务运行0.5秒 */
-			TEST_TaskRun(500);
-
-			/* 任务延迟2秒 */
-			(void) NIX_TaskDelay(200);
-
-			/* 任务打印 */
-			DEV_PutStrToMem((U8 *) "\r\nTask2 give gpstrSemMute %d! Tick is: %d", i, NIX_GetSystemTick());
-
-			/* 释放信号量, 以便其它任务可以获得该信号量 */
-			(void) NIX_SemGive(gpstrSemMute);
-		} else {	/* 接下来获取gpstrSemSync信号量, 由TEST_TestTask1任务激活 */
-
-			i++;
-
-			/* 信号量被删除, 任务返回 */
-			if (RTN_SMTKDL == NIX_SemTake(gpstrSemSync, SEMWAITFEV)) {
-				/* 任务打印 */
-				DEV_PutStrToMem((U8 *) "\r\nTask2 gpstrSemSync deleted! Tick is: %d",
-						NIX_GetSystemTick());
-
-				return;
-			}
-			/* 获取到gpstrSemSync信号量才运行 */
-			else {
-				/* 任务打印 */
-				DEV_PutStrToMem((U8 *) "\r\nTask2 take gpstrSemSync %d! Tick is: %d",
-						i, NIX_GetSystemTick());
-
-				/* 任务运行0.5秒 */
-				TEST_TaskRun(500);
-			}
-		}
+		/* 任务延迟5秒 */
+		(void) NIX_TaskDelay(500);
 	}
 
 }
-
 
 /**********************************************/
 //函数功能:测试任务3
@@ -129,89 +57,16 @@ void TEST_TestTask2(void *pvPara)
 /**********************************************/
 void TEST_TestTask3(void *pvPara)
 {
-	U8 i;
-
-	i = 0;
-
 	while (1) {
-		/* 前3次获取gpstrSemMute信号量, 与TEST_TestTask2任务互锁 */
-		if (i < 3) {
-			i++;
+		/* 获取到信号量才运行 */
+		(void) NIX_SemTake(gpstrSemCnt, SEMWAITFEV);
 
-			/* 获取到信号量才运行 */
-			(void) NIX_SemTake(gpstrSemMute, SEMWAITFEV);
+		/* 任务打印 */
+		DEV_PutStrToMem((U8 *) "\r\nTask3 is running! Tick is: %d", NIX_GetSystemTick());
 
-			/* 任务打印 */
-			DEV_PutStrToMem((U8 *) "\r\nTask3 take gpstrSemMute %d! Tick is: %d", i, NIX_GetSystemTick());
-
-			/* 任务运行0.5秒 */
-			TEST_TaskRun(500);
-
-			/* 任务延迟1.5秒 */
-			(void) NIX_TaskDelay(150);
-
-			/* 任务打印 */
-			DEV_PutStrToMem((U8 *) "\r\nTask3 give gpstrSemMute %d! Tick is: %d", i, NIX_GetSystemTick());
-
-			/* 释放信号量, 以便其它任务可以获得该信号量 */
-			(void) NIX_SemGive(gpstrSemMute);
-		} else {	/* 接下来获取gpstrSemSync信号量, 由TEST_TestTask1任务激活 */
-
-			i++;
-
-			/* 信号量被删除, 任务返回 */
-			if (RTN_SMTKDL == NIX_SemTake(gpstrSemSync, SEMWAITFEV)) {
-				/* 任务打印 */
-				DEV_PutStrToMem((U8 *) "\r\nTask3 gpstrSemSync deleted! Tick is: %d",
-						NIX_GetSystemTick());
-
-				return;
-			} else {	/* 获取到gpstrSemSync信号量才运行 */
-
-				/* 任务打印 */
-				DEV_PutStrToMem((U8 *) "\r\nTask3 take gpstrSemSync %d! Tick is: %d",
-						i, NIX_GetSystemTick());
-
-				/* 任务运行0.5秒 */
-				TEST_TaskRun(500);
-			}
-		}
+		/* 任务延迟2秒 */
+		(void) NIX_TaskDelay(200);
 	}
-
-
-}
-
-/**********************************************/
-//函数功能:测试任务4
-//输入参数:pvPara:任务入口指针
-//返回值  :none
-/**********************************************/
-void TEST_TestTask4(void *pvPara)
-{
-	U8 i;
-
-	i = 0;
-
-	while (1) {
-		/* 信号量被删除, 任务返回 */
-		if (RTN_SMTKDL == NIX_SemTake(gpstrSemSync, SEMWAITFEV)) {
-			/* 任务打印 */
-			DEV_PutStrToMem((U8 *) "\r\nTask4 gpstrSemSync deleted! Tick is: %d", NIX_GetSystemTick());
-
-			return;
-		} else {	/* 获取到gpstrSemSync信号量才运行 */
-
-			i++;
-
-			/* 任务打印 */
-			DEV_PutStrToMem((U8 *) "\r\nTask4 take gpstrSemSync %d! Tick is: %d", i, NIX_GetSystemTick());
-
-			/* 任务运行0.5秒 */
-			TEST_TaskRun(500);
-		}
-	}
-
-
 }
 
 /**********************************************/
