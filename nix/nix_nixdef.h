@@ -122,6 +122,7 @@ typedef struct nix_sem		//信号量结构体
 	U32 uiCounter;		//信号量计数值
 	U32 uiSemOpt;		//调度方式:优先级或FIFO
 	U8 *pucSemMem;		//创建信号量时的内存地址
+	struct nix_tcb *pstrSemTask;	//获取到互斥信号量的任务
 } NIX_SEM;
 
 typedef struct nix_tcb		//TCB结构体

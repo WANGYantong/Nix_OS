@@ -521,7 +521,7 @@ NIX_LIST *NIX_TaskDelFromSemTab(NIX_TCB * pstrTcb)
 //输入参数:pstrSem:待调度的sem表指针
 //返回值  :查找到的任务TCB指针
 /**********************************************/
-NIX_TCB *NIX_SemGetAcitveTask(NIX_SEM * pstrSem)
+NIX_TCB *NIX_SemGetActiveTask(NIX_SEM * pstrSem)
 {
 	NIX_TCBQUE *pstrTaskQue;
 	NIX_LIST *pstrNode;

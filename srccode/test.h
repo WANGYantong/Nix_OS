@@ -3,6 +3,9 @@
 
 #include "global.h"
 
+extern void TEST_Test1(void);
+extern void TEST_Test2(void);
+extern void TEST_Test3(void);
 extern void TEST_TaskRun(U32 uiMs);
 
 #endif

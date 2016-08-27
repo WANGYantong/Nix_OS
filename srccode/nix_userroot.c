@@ -15,7 +15,7 @@ void NIX_RootTask(void)
 
 	(void) NIX_TaskCreat("Task2", TEST_TestTask2, NULL, NULL, TASKSTACK, 4, NULL);
 
-	(void) NIX_TaskCreat("Task3", TEST_TestTask3, NULL, NULL, TASKSTACK, 3, NULL);
+	//(void) NIX_TaskCreat("Task3", TEST_TestTask3, NULL, NULL, TASKSTACK, 3, NULL);
 
 	gpstrSerialTaskTcb = NIX_TaskCreat("SrlPrt", TEST_SerialPrintTask, NULL, NULL, TASKSTACK, 6, NULL);
 

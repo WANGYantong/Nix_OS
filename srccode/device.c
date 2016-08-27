@@ -16,7 +16,7 @@ void DEV_SoftwareInit(void)
 
 	gpstrSerialMsgQue = NIX_QueCreate((NIX_QUE *) NULL);	//创建打印消息的队列
 
-	gpstrSemCnt = NIX_SemCreat((NIX_SEM *) NULL, SEMCNT | SEMPRIO, SEMEMPTY);
+	gpstrSemMut = NIX_SemCreat((NIX_SEM *) NULL, SEMMUT | SEMPRIO, SEMFULL);
 #ifdef NIX_INCLUDETASKHOOK
 	NIX_TaskCreateHookAdd(TEST_TaskCreatePrint);
 	NIX_TaskSwitchHookAdd(TEST_TaskSwitchPrint);

@@ -7,6 +7,7 @@
 #define RTN_SMTKTO          2	/* 等待信号量的时间耗尽, 超时返回 */
 #define RTN_SMTKRT          3	/* 没有获取到信号量, 直接返回 */
 #define RTN_SMTKDL          4	/* 信号量被删除 */
+#define RTN_SMTKOV          5	/* 互斥信号量溢出 */
 
 /* 释放信号量的返回值 */
 #define RTN_SMGVOV          2	/* 释放信号量溢出 */
@@ -22,6 +23,7 @@
 /* 信号量类型 */
 #define SEMBIN              (1 << SEMTYPOF)	/* 二进制信号量 */
 #define SEMCNT              (2 << SEMTYPOF)	/* 计数信号量 */
+#define SEMMUT              (4 << SEMTYPOF)	/*互斥信号量 */
 
 /* 信号量初始值 */
 #define SEMEMPTY            0	/* 信号量为空状态 */

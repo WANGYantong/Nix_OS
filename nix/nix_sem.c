@@ -12,13 +12,20 @@ NIX_SEM *NIX_SemCreat(NIX_SEM * pstrSem, U32 uiSemOpt, U32 uiInitVal)
 {
 	U8 *pucSemMemAddr;
 
-	if ((((uiSemOpt & SEMSCHEDOPTMASK) != SEMFIFO) && ((uiSemOpt & SEMSCHEDOPTMASK) != SEMPRIO))
-	    || (((uiSemOpt & SEMTYPEMASK) != SEMBIN) && ((uiSemOpt & SEMTYPEMASK) != SEMCNT))) {
+	if ((((uiSemOpt & SEMSCHEDOPTMASK) != SEMFIFO)
+	     && ((uiSemOpt & SEMSCHEDOPTMASK) != SEMPRIO))
+	    || (((uiSemOpt & SEMTYPEMASK) != SEMBIN)
+		&& ((uiSemOpt & SEMTYPEMASK) != SEMCNT)
+		&& ((uiSemOpt & SEMTYPEMASK) != SEMMUT))) {
 		return (NIX_SEM *) NULL;
 	}
 
 	if ((uiSemOpt & SEMTYPEMASK) == SEMBIN) {
 		if ((uiInitVal != SEMEMPTY) && (uiInitVal != SEMFULL)) {
+			return (NIX_SEM *) NULL;
+		}
+	} else if ((uiSemOpt & SEMTYPEMASK) == SEMMUT) {
+		if (uiInitVal != SEMFULL) {
 			return (NIX_SEM *) NULL;
 		}
 	}
@@ -45,6 +52,7 @@ NIX_SEM *NIX_SemCreat(NIX_SEM * pstrSem, U32 uiSemOpt, U32 uiInitVal)
 	pstrSem->uiCounter = uiInitVal;
 	pstrSem->uiSemOpt = uiSemOpt;
 	pstrSem->pucSemMem = pucSemMemAddr;
+	pstrSem->pstrSemTask = (NIX_TCB *) NULL;
 
 	return pstrSem;
 }
@@ -66,8 +74,12 @@ U32 NIX_SemTake(NIX_SEM * pstrSem, U32 uiDelayTick)
 	}
 
 	if (NIX_RunInInt() == RTN_SUCD) {
-		if (uiDelayTick != SEMNOWAIT) {
+		if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMMUT) {
 			return RTN_FAIL;
+		} else {
+			if (uiDelayTick != SEMNOWAIT) {
+				return RTN_FAIL;
+			}
 		}
 	}
 
@@ -83,7 +95,7 @@ U32 NIX_SemTake(NIX_SEM * pstrSem, U32 uiDelayTick)
 				(void) NIX_IntUnLock();
 				return RTN_SMTKRT;
 			}
-		} else {
+		} else if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMCNT) {
 			if (pstrSem->uiCounter != SEMEMPTY) {
 				pstrSem->uiCounter--;
 				(void) NIX_IntUnLock();
@@ -91,6 +103,27 @@ U32 NIX_SemTake(NIX_SEM * pstrSem, U32 uiDelayTick)
 			} else {
 				(void) NIX_IntUnLock();
 				return RTN_SMTKRT;
+			}
+		} else {
+			if (pstrSem->uiCounter == SEMFULL) {
+				pstrSem->uiCounter--;
+				pstrSem->pstrSemTask = gpstrCurTcb;
+				(void) NIX_IntUnLock();
+				return RTN_SUCD;
+			} else {
+				if (pstrSem->pstrSemTask == gpstrCurTcb) {
+					if (pstrSem->uiCounter != SEMEMPTY) {
+						pstrSem->uiCounter--;
+						(void) NIX_IntUnLock();
+						return RTN_SUCD;
+					} else {
+						(void) NIX_IntUnLock();
+						return RTN_SMTKOV;
+					}
+				} else {
+					(void) NIX_IntUnLock();
+					return RTN_SMTKRT;
+				}
 			}
 		}
 	} else {
@@ -111,7 +144,7 @@ U32 NIX_SemTake(NIX_SEM * pstrSem, U32 uiDelayTick)
 
 				return gpstrCurTcb->strTaskOpt.uiDelayTick;
 			}
-		} else {
+		} else if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMCNT) {
 			if (pstrSem->uiCounter != SEMEMPTY) {
 				pstrSem->uiCounter--;
 				(void) NIX_IntUnLock();
@@ -128,6 +161,35 @@ U32 NIX_SemTake(NIX_SEM * pstrSem, U32 uiDelayTick)
 
 				return gpstrCurTcb->strTaskOpt.uiDelayTick;
 			}
+		} else {
+			if (pstrSem->uiCounter == SEMFULL) {
+				pstrSem->uiCounter--;
+				pstrSem->pstrSemTask = gpstrCurTcb;
+				(void) NIX_IntUnLock();
+				return RTN_SUCD;
+			} else {
+				if (pstrSem->pstrSemTask == gpstrCurTcb) {
+					if (pstrSem->uiCounter != SEMEMPTY) {
+						pstrSem->uiCounter--;
+						(void) NIX_IntUnLock();
+						return RTN_SUCD;
+					} else {
+						(void) NIX_IntUnLock();
+						return RTN_SMTKOV;
+					}
+				} else {
+					if (NIX_TaskPend(pstrSem, uiDelayTick) == RTN_FAIL) {
+						(void) NIX_IntUnLock();
+						return RTN_FAIL;
+					}
+
+					(void) NIX_IntUnLock();
+
+					NIX_TaskSwiSched();
+
+					return gpstrCurTcb->strTaskOpt.uiDelayTick;
+				}
+			}
 		}
 	}
 }
@@ -140,23 +202,61 @@ U32 NIX_SemTake(NIX_SEM * pstrSem, U32 uiDelayTick)
 /**********************************************/
 U32 NIX_SemGive(NIX_SEM * pstrSem)
 {
+#define NOTCHECKPENDTASK        0	//不检查挂起任务
+#define CHECKPENDTASK           1	//检查挂起任务
 	NIX_TCB *pstrTcb;
 	NIX_LIST *pstrList;
 	NIX_LIST *pstrNode;
 	NIX_PRIOFLAG *pstrPrioFlag;
 	U32 uiRtn;
 	U8 ucTaskPrio;
+	U8 ucTaskPendFlag;
 
 	if (pstrSem == NULL) {
 		return RTN_FAIL;
+	}
+
+	if (NIX_RunInInt() == RTN_SUCD) {
+		if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMMUT) {
+			return RTN_FAIL;
+		}
 	}
 
 	uiRtn = RTN_SUCD;
 
 	(void) NIX_IntLock();
 
-	if (pstrSem->uiCounter == SEMEMPTY) {
-		pstrTcb = NIX_SemGetAcitveTask(pstrSem);
+	if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMBIN) {
+		if (pstrSem->uiCounter == SEMEMPTY) {
+			ucTaskPendFlag = CHECKPENDTASK;
+		} else {
+			ucTaskPendFlag = NOTCHECKPENDTASK;
+		}
+	} else if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMCNT) {
+		if (pstrSem->uiCounter == SEMEMPTY) {
+			ucTaskPendFlag = CHECKPENDTASK;
+		} else {
+			ucTaskPendFlag = NOTCHECKPENDTASK;
+			if (pstrSem->uiCounter != SEMFULL) {
+				pstrSem->uiCounter++;
+			} else {
+				uiRtn = RTN_SMTKOV;
+			}
+		}
+	} else {
+		if (pstrSem->pstrSemTask != gpstrCurTcb) {
+			(void) NIX_IntUnLock();
+			return RTN_FAIL;
+		}
+		pstrSem->uiCounter++;
+		if (pstrSem->uiCounter != SEMFULL) {
+			ucTaskPendFlag = NOTCHECKPENDTASK;
+		} else {
+			ucTaskPendFlag = CHECKPENDTASK;
+		}
+	}
+	if (ucTaskPendFlag == CHECKPENDTASK) {
+		pstrTcb = NIX_SemGetActiveTask(pstrSem);
 
 		if (pstrTcb != NULL) {
 			(void) NIX_TaskDelFromSemTab(pstrTcb);
@@ -179,6 +279,11 @@ U32 NIX_SemGive(NIX_SEM * pstrSem)
 
 			pstrTcb->strTaskOpt.ucTaskSta |= TASKREADY;
 
+			if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMMUT) {
+				pstrSem->pstrSemTask = pstrTcb;
+				pstrSem->uiCounter--;
+			}
+
 			(void) NIX_IntUnLock();
 
 			NIX_TaskSwiSched();
@@ -187,16 +292,10 @@ U32 NIX_SemGive(NIX_SEM * pstrSem)
 		} else {
 			if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMBIN) {
 				pstrSem->uiCounter = SEMFULL;
-			} else {
-				pstrSem->uiCounter++;
-			}
-		}
-	} else {
-		if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMCNT) {
-			if (pstrSem->uiCounter != SEMFULL) {
+			} else if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMCNT) {
 				pstrSem->uiCounter++;
 			} else {
-				uiRtn = RTN_SMGVOV;
+				pstrSem->pstrSemTask = (NIX_TCB *) NULL;
 			}
 		}
 	}
@@ -224,10 +323,14 @@ U32 NIX_SemFlushValue(NIX_SEM * pstrSem, U32 uiRtnValue)
 		return RTN_FAIL;
 	}
 
+	if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMMUT) {
+		return RTN_FAIL;
+	}
+
 	(void) NIX_IntLock();
 
 	while (1) {
-		pstrTcb = NIX_SemGetAcitveTask(pstrSem);
+		pstrTcb = NIX_SemGetActiveTask(pstrSem);
 
 		if (pstrTcb != NULL) {
 			(void) NIX_TaskDelFromSemTab(pstrTcb);

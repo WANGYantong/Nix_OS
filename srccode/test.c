@@ -3,7 +3,7 @@
 NIX_QUE *gpstrSerialMsgQue;	/* 串口打印消息队列指针 */
 NIX_TCB *gpstrSerialTaskTcb;	/* 串口打印任务TCB指针 */
 
-NIX_SEM *gpstrSemCnt;
+NIX_SEM *gpstrSemMut;
 
 /**********************************************/
 //函数功能:测试任务1
@@ -13,16 +13,14 @@ NIX_SEM *gpstrSemCnt;
 void TEST_TestTask1(void *pvPara)
 {
 	while (1) {
-		/* 获取到信号量才运行 */
-		(void) NIX_SemTake(gpstrSemCnt, SEMWAITFEV);
-
 		/* 任务打印 */
 		DEV_PutStrToMem((U8 *) "\r\nTask1 is running! Tick is: %d", NIX_GetSystemTick());
 
-		/* 任务延迟0.5秒 */
-		(void) NIX_TaskDelay(50);
+		/* 执行测试函数 */
+		TEST_Test1();
 	}
 }
+
 
 /**********************************************/
 //函数功能:测试任务2
@@ -35,38 +33,91 @@ void TEST_TestTask2(void *pvPara)
 		/* 任务打印 */
 		DEV_PutStrToMem((U8 *) "\r\nTask2 is running! Tick is: %d", NIX_GetSystemTick());
 
-		/* 任务运行1秒 */
-		TEST_TaskRun(1000);
-
-		/* 连续释放计数信号量, 激活其它任务 */
-		(void) NIX_SemGive(gpstrSemCnt);
-		(void) NIX_SemGive(gpstrSemCnt);
-		(void) NIX_SemGive(gpstrSemCnt);
-		(void) NIX_SemGive(gpstrSemCnt);
-
-		/* 任务延迟5秒 */
-		(void) NIX_TaskDelay(500);
+		/* 执行测试函数 */
+		TEST_Test3();
 	}
-
 }
 
-/**********************************************/
-//函数功能:测试任务3
-//输入参数:pvPara:任务入口指针
-//返回值  :none
-/**********************************************/
-void TEST_TestTask3(void *pvPara)
+
+/***********************************************************************************
+函数功能: 测试函数1, 获取/释放互斥信号量.
+入口参数: none.
+返 回 值: none.
+***********************************************************************************/
+void TEST_Test1(void)
 {
-	while (1) {
-		/* 获取到信号量才运行 */
-		(void) NIX_SemTake(gpstrSemCnt, SEMWAITFEV);
+	/* 获取到信号量才运行 */
+	(void) NIX_SemTake(gpstrSemMut, SEMWAITFEV);
 
-		/* 任务打印 */
-		DEV_PutStrToMem((U8 *) "\r\nTask3 is running! Tick is: %d", NIX_GetSystemTick());
+	/* 任务打印 */
+	DEV_PutStrToMem((U8 *) "\r\nT1 is running! Tick is: %d", NIX_GetSystemTick());
 
-		/* 任务延迟2秒 */
-		(void) NIX_TaskDelay(200);
-	}
+	/* 任务运行1.5秒 */
+	TEST_TaskRun(1500);
+
+	/* 执行测试函数 */
+	TEST_Test2();
+
+	/* 任务延迟1秒 */
+	(void) NIX_TaskDelay(100);
+
+	/* 释放信号量 */
+	(void) NIX_SemGive(gpstrSemMut);
+
+	/* 任务延迟1秒 */
+	(void) NIX_TaskDelay(100);
+}
+
+/***********************************************************************************
+函数功能: 测试函数2, 获取/释放互斥信号量.
+入口参数: none.
+返 回 值: none.
+***********************************************************************************/
+void TEST_Test2(void)
+{
+	/* 获取到信号量才运行 */
+	(void) NIX_SemTake(gpstrSemMut, SEMWAITFEV);
+
+	/* 任务打印 */
+	DEV_PutStrToMem((U8 *) "\r\nT2 is running! Tick is: %d", NIX_GetSystemTick());
+
+	/* 任务运行0.5秒 */
+	TEST_TaskRun(500);
+
+	/* 任务延迟2秒 */
+	(void) NIX_TaskDelay(200);
+
+	/* 释放信号量 */
+	(void) NIX_SemGive(gpstrSemMut);
+
+	/* 任务延迟3秒 */
+	(void) NIX_TaskDelay(300);
+}
+
+/***********************************************************************************
+函数功能: 测试函数3, 获取/释放互斥信号量.
+入口参数: none.
+返 回 值: none.
+***********************************************************************************/
+void TEST_Test3(void)
+{
+	/* 获取到信号量才运行 */
+	(void) NIX_SemTake(gpstrSemMut, SEMWAITFEV);
+
+	/* 任务打印 */
+	DEV_PutStrToMem((U8 *) "\r\nT3 is running! Tick is: %d", NIX_GetSystemTick());
+
+	/* 任务运行0.5秒 */
+	TEST_TaskRun(500);
+
+	/* 任务延迟2秒 */
+	(void) NIX_TaskDelay(200);
+
+	/* 释放信号量 */
+	(void) NIX_SemGive(gpstrSemMut);
+
+	/* 任务延迟2秒 */
+	(void) NIX_TaskDelay(200);
 }
 
 /**********************************************/

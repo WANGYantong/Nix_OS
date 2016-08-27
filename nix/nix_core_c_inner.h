@@ -41,7 +41,7 @@ extern NIX_TCB *NIX_TaskReadyTabSched(void);
 extern void NIX_TaskDelayTabSched(void);
 extern void NIX_TaskAddToSemTab(NIX_TCB * pstrTcb, NIX_SEM * pstrSem);
 extern NIX_LIST *NIX_TaskDelFromSemTab(NIX_TCB * pstrTcb);
-extern NIX_TCB *NIX_SemGetAcitveTask(NIX_SEM * pstrSem);
+extern NIX_TCB *NIX_SemGetActiveTask(NIX_SEM * pstrSem);
 extern void NIX_TaskSetPrioFlag(NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio);
 extern void NIX_TaskClrPrioFlag(NIX_PRIOFLAG * pstrPrioFlag, U8 ucTaskPrio);
 extern U8 NIX_TaskGetHighestPrio(NIX_PRIOFLAG * pstrPrioFlag);
