@@ -9,5 +9,6 @@
 #include "nix_task_inner.h"
 #include "nix_userroot_inner.h"
 #include "nix_sem_inner.h"
+#include "nix_queue_inner.h"
 
 #endif
