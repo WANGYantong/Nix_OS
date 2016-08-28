@@ -388,9 +388,11 @@ U32 NIX_SemDelete(NIX_SEM * pstrSem)
 		return RTN_FAIL;
 	}
 
-	if (NIX_SemFlushValue(pstrSem, RTN_SMTKDL) != RTN_SUCD) {
-		return RTN_FAIL;
-	}
+    if((pstrSem->uiSemOpt & SEMTYPEMASK) != SEMMUT) {
+        if (NIX_SemFlushValue(pstrSem, RTN_SMTKDL) != RTN_SUCD) {
+            return RTN_FAIL;
+        }
+    }
 
 	if (pstrSem->pucSemMem != NULL) {
 		(void) NIX_IntLock();
