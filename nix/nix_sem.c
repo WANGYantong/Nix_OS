@@ -323,6 +323,9 @@ U32 NIX_SemFlushValue(NIX_SEM * pstrSem, U32 uiRtnValue)
 		return RTN_FAIL;
 	}
 
+    //被互斥信号量阻塞的任务不能被批量释放
+    //因为互斥信号量和任务相关
+    //只能被pstrSem->pstrSemTask相关联的任务通过SemGive函数释放
 	if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMMUT) {
 		return RTN_FAIL;
 	}
