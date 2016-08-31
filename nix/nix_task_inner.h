@@ -16,6 +16,11 @@ extern VFHSWT gvfTaskSwitchHook;
 extern VFHDLT gvfTaskDeleteHook;
 #endif
 
+#ifdef NIX_TASKROUNDROBIN
+extern U32 guiTimeSlice;
+extern U32 gauiSliceCnt[PRIORITYNUM];
+#endif
+
 /******************************************************************/
 extern NIX_TCB *NIX_TaskTcbInit(U8 * pucTaskName, VFUNC vfFuncPointer,
 				void *pvPara, U8 * pucTaskStack,

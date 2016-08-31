@@ -1,6 +1,11 @@
 #include <stdlib.h>
 #include "nix_inner.h"
 
+#ifdef NIX_TASKROUNDROBIN
+U32 guiTimeSlice;
+U32 gauiSliceCnt[PRIORITYNUM];
+#endif
+
 #ifdef NIX_INCLUDETASKHOOK
 VFHCRT gvfTaskCreateHook;	//任务创建钩子变量
 VFHSWT gvfTaskSwitchHook;	//任务切换钩子变量
@@ -118,6 +123,11 @@ U32 NIX_TaskDelete(NIX_TCB * pstrTcb)
 
 	if (pstrTcb == gpstrCurTcb) {
 		gpstrCurTcb = NULL;
+
+#ifdef NIX_TASKROUNDROBIN
+		gauiSliceCnt[gpstrCurTcb->ucTaskPrio] = 0;
+#endif
+
 	}
 
 	(void) NIX_IntUnLock();
@@ -259,6 +269,10 @@ U32 NIX_TaskDelay(U32 uiDelayTick)
 
 		gpstrCurTcb->strTaskOpt.ucTaskSta |= TASKDELAY;
 
+#ifdef NIX_TASKROUNDROBIN
+		gauiSliceCnt[gpstrCurTcb->ucTaskPrio] = 0;
+#endif
+
 		(void) NIX_IntUnLock();
 	} else {
 		gpstrCurTcb->strTaskOpt.uiDelayTick = RTN_SUCD;
@@ -360,6 +374,10 @@ U32 NIX_TaskPend(NIX_SEM * pstrSem, U32 uiDelayTick)
 
 	gpstrCurTcb->strTaskOpt.ucTaskSta |= TASKPEND;
 
+#ifdef NIX_TASKROUNDROBIN
+	gauiSliceCnt[gpstrCurTcb->ucTaskPrio] = 0;
+#endif
+
 	return RTN_SUCD;
 }
 
@@ -443,6 +461,29 @@ void NIX_TaskPrioResume(NIX_TCB * pstrTcb)
 
 	pstrList = &gstrReadyTab.astrList[pstrTcb->ucTaskPrio];
 	NIX_TaskAddToSchedTab(pstrList, pstrNode, pstrPrioFlag, pstrTcb->ucTaskPrio);
+}
+
+#endif
+
+#ifdef NIX_TASKROUNDROBIN
+
+/**********************************************/
+//函数功能:设置轮转调度时间的周期值
+//输入参数:uiTimeSlice:轮转周期值，单位tick
+//返回值  :none
+/**********************************************/
+void NIX_TaskTimeSlice(U32 uiTimeSlice)
+{
+	U32 i;
+
+	(void) NIX_IntLock();
+
+	guiTimeSlice = uiTimeSlice;
+	for (i = 0; i < PRIORITYNUM; i++) {
+		gauiSliceCnt[i] = 0;
+	}
+
+	(void) NIX_IntUnLock();
 }
 
 #endif

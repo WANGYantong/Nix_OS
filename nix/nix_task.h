@@ -33,6 +33,10 @@ extern void NIX_TaskSelfDelete(void);
 extern U32 NIX_TaskDelay(U32 uiDelayTick);
 extern U32 NIX_TaskWake(NIX_TCB * pstrTcb);
 
+#ifdef NIX_TASKROUNDROBIN
+extern void NIX_TaskTimeSlice(U32 uiTimeSlice);
+#endif
+
 #ifdef NIX_INCLUDETASKHOOK
 extern void NIX_TaskCreateHookAdd(VFHCRT vfFuncPointer);
 extern void NIX_TaskCreateHookDel(void);

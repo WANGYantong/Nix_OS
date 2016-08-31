@@ -3,7 +3,6 @@
 NIX_QUE *gpstrSerialMsgQue;	/* 串口打印消息队列指针 */
 NIX_TCB *gpstrSerialTaskTcb;	/* 串口打印任务TCB指针 */
 
-NIX_SEM *gpstrSemMut;
 
 /**********************************************/
 //函数功能:测试任务1
@@ -12,24 +11,32 @@ NIX_SEM *gpstrSemMut;
 /**********************************************/
 void TEST_TestTask1(void *pvPara)
 {
-	while (1) {
+	U32 uiDelayTime;
 
+	uiDelayTime = 500;
+
+	while (1) {
 		/* 任务打印 */
 		DEV_PutStrToMem((U8 *) "\r\nTask1 is running! Tick is: %d", NIX_GetSystemTick());
 
-		/* 获取信号量 */
-		(void) NIX_SemTake(gpstrSemMut, SEMWAITFEV);
+		/* 任务运行2秒 */
+		TEST_TaskRun(2000);
 
-		/* 任务运行5秒 */
-		TEST_TaskRun(5000);
+		/* 任务延迟 */
+		(void) NIX_TaskDelay(uiDelayTime);
 
-		/* 释放信号量 */
-		(void) NIX_SemGive(gpstrSemMut);
+		/* 满足条件则修改任务轮转调度时间 */
+		if ((500 == uiDelayTime) && (NIX_GetSystemTick() > 2000)) {
+			uiDelayTime = 150;
 
-		/* 任务延迟1秒 */
-		(void) NIX_TaskDelay(100);
+			/* 设置任务轮转调度时间 */
+			NIX_TaskTimeSlice(50);
 
+			/* 任务打印 */
+			DEV_PutStrToMem((U8 *) "\r\nSet time slice to 50 ticks! Tick is: %d", NIX_GetSystemTick());
+		}
 	}
+
 
 }
 
@@ -41,17 +48,24 @@ void TEST_TestTask1(void *pvPara)
 /**********************************************/
 void TEST_TestTask2(void *pvPara)
 {
-	while (1) {
+	U32 uiDelayTime;
 
+	uiDelayTime = 350;
+
+	while (1) {
 		/* 任务打印 */
 		DEV_PutStrToMem((U8 *) "\r\nTask2 is running! Tick is: %d", NIX_GetSystemTick());
 
-		/* 任务运行1秒 */
-		TEST_TaskRun(1000);
+		/* 任务运行2秒 */
+		TEST_TaskRun(2000);
 
-		/* 任务延迟1秒 */
-		(void) NIX_TaskDelay(100);
+		/* 任务延迟 */
+		(void) NIX_TaskDelay(uiDelayTime);
 
+		/* 满足条件则修改任务延迟时间 */
+		if ((350 == uiDelayTime) && (NIX_GetSystemTick() > 2000)) {
+			uiDelayTime = 150;
+		}
 	}
 
 }
@@ -64,21 +78,16 @@ void TEST_TestTask2(void *pvPara)
 void TEST_TestTask3(void *pvPara)
 {
 	while (1) {
-		/* 获取信号量 */
-		(void) NIX_SemTake(gpstrSemMut, SEMWAITFEV);
-
 		/* 任务打印 */
 		DEV_PutStrToMem((U8 *) "\r\nTask3 is running! Tick is: %d", NIX_GetSystemTick());
 
-		/* 任务运行1秒 */
-		TEST_TaskRun(1000);
+		/* 任务运行2秒 */
+		TEST_TaskRun(2000);
 
-		/* 释放信号量 */
-		(void) NIX_SemGive(gpstrSemMut);
-
-		/* 任务延迟3秒 */
-		(void) NIX_TaskDelay(300);
+		/* 任务延迟1.5秒 */
+		(void) NIX_TaskDelay(150);
 	}
+
 }
 
 
