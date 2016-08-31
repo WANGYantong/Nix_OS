@@ -363,6 +363,89 @@ U32 NIX_TaskPend(NIX_SEM * pstrSem, U32 uiDelayTick)
 	return RTN_SUCD;
 }
 
+#ifdef NIX_TASKPRIOINHER
+
+/**********************************************/
+//函数功能:继承任务优先级
+//输入参数:pstrTcb:继承优先级的任务TCB指针
+//        :ucTaskPrio:待继承的优先级
+//返回值  :none
+/**********************************************/
+void NIX_TaskPrioInheritance(NIX_TCB * pstrTcb, U8 ucTaskPrio)
+{
+	NIX_LIST *pstrList;
+	NIX_LIST *pstrNode;
+	NIX_PRIOFLAG *pstrPrioFlag;
+	U8 ucTaskPrioTemp;
+
+	if (pstrTcb == NULL) {
+		return;
+	}
+
+	if (pstrTcb->ucTaskPrio <= ucTaskPrio) {
+		return;
+	}
+	//规避编译报警
+	//pstrNode=(NIX_LIST*)NULL;
+	//pstrPrioFlag=(NIX_PRIOFLAG*)NULL;
+
+	if ((pstrTcb->strTaskOpt.ucTaskSta & TASKREADY) == TASKREADY) {
+		ucTaskPrioTemp = pstrTcb->ucTaskPrio;
+		pstrList = &gstrReadyTab.astrList[ucTaskPrioTemp];
+		pstrPrioFlag = &gstrReadyTab.strFlag;
+		pstrNode = NIX_TaskDelFromSchedTab(pstrList, pstrPrioFlag, ucTaskPrioTemp);
+	}
+
+	if ((pstrTcb->uiTaskFlag & TASKPRIINHFLAG) != TASKPRIINHFLAG) {
+		pstrTcb->ucTaskPrioBackup = pstrTcb->ucTaskPrio;
+	}
+
+	pstrTcb->ucTaskPrio = ucTaskPrio;
+	pstrTcb->uiTaskFlag |= TASKPRIINHFLAG;
+
+	if ((pstrTcb->strTaskOpt.ucTaskSta & TASKREADY) == TASKREADY) {
+		pstrList = &gstrReadyTab.astrList[ucTaskPrio];
+		NIX_TaskAddToSchedTab(pstrList, pstrNode, pstrPrioFlag, ucTaskPrio);
+	}
+
+}
+
+/**********************************************/
+//函数功能:恢复任务优先级
+//输入参数:pstrTcb:恢复优先级的任务TCB指针
+//返回值  :none
+/**********************************************/
+void NIX_TaskPrioResume(NIX_TCB * pstrTcb)
+{
+	NIX_LIST *pstrList;
+	NIX_LIST *pstrNode;
+	NIX_PRIOFLAG *pstrPrioFlag;
+	U8 ucTaskPrioTemp;
+
+	if (pstrTcb == NULL) {
+		return;
+	}
+
+	if ((pstrTcb->uiTaskFlag & TASKPRIINHFLAG) != TASKPRIINHFLAG) {
+		return;
+	}
+	//规避编译报警
+	//pstrNode=(NIX_LIST*)NULL;
+	//pstrPrioFlag=(NIX_PRIOFLAG*)NULL;
+
+	ucTaskPrioTemp = pstrTcb->ucTaskPrio;
+	pstrList = &gstrReadyTab.astrList[ucTaskPrioTemp];
+	pstrPrioFlag = &gstrReadyTab.strFlag;
+	pstrNode = NIX_TaskDelFromSchedTab(pstrList, pstrPrioFlag, ucTaskPrioTemp);
+
+	pstrTcb->ucTaskPrio = pstrTcb->ucTaskPrioBackup;
+	pstrTcb->uiTaskFlag &= (~((U32) TASKPRIINHFLAG));
+
+	pstrList = &gstrReadyTab.astrList[pstrTcb->ucTaskPrio];
+	NIX_TaskAddToSchedTab(pstrList, pstrNode, pstrPrioFlag, pstrTcb->ucTaskPrio);
+}
+
+#endif
 
 #ifdef NIX_INCLUDETASKHOOK
 

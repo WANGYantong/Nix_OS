@@ -13,16 +13,22 @@ NIX_SEM *gpstrSemMut;
 void TEST_TestTask1(void *pvPara)
 {
 	while (1) {
+
 		/* 任务打印 */
 		DEV_PutStrToMem((U8 *) "\r\nTask1 is running! Tick is: %d", NIX_GetSystemTick());
 
-		DEV_PutStrToMem((U8 *) "\r\nTask1 is running! Tick is: %d", NIX_GetSystemTick());
+		/* 获取信号量 */
+		(void) NIX_SemTake(gpstrSemMut, SEMWAITFEV);
 
-		/* 任务运行0.5秒 */
-		TEST_TaskRun(500);
+		/* 任务运行5秒 */
+		TEST_TaskRun(5000);
 
-		/* 任务延迟2秒 */
-		(void) NIX_TaskDelay(200);
+		/* 释放信号量 */
+		(void) NIX_SemGive(gpstrSemMut);
+
+		/* 任务延迟1秒 */
+		(void) NIX_TaskDelay(100);
+
 	}
 
 }
@@ -36,21 +42,45 @@ void TEST_TestTask1(void *pvPara)
 void TEST_TestTask2(void *pvPara)
 {
 	while (1) {
+
 		/* 任务打印 */
 		DEV_PutStrToMem((U8 *) "\r\nTask2 is running! Tick is: %d", NIX_GetSystemTick());
 
-		DEV_PutStrToMem((U8 *) "\r\nTask2 is running! Tick is: %d", NIX_GetSystemTick());
+		/* 任务运行1秒 */
+		TEST_TaskRun(1000);
 
-		DEV_PutStrToMem((U8 *) "\r\nTask2 is running! Tick is: %d", NIX_GetSystemTick());
+		/* 任务延迟1秒 */
+		(void) NIX_TaskDelay(100);
 
-		/* 任务运行2秒 */
-		TEST_TaskRun(2000);
+	}
+
+}
+
+/**********************************************/
+//函数功能:测试任务3
+//输入参数:pvPara:任务入口指针
+//返回值  :none
+/**********************************************/
+void TEST_TestTask3(void *pvPara)
+{
+	while (1) {
+		/* 获取信号量 */
+		(void) NIX_SemTake(gpstrSemMut, SEMWAITFEV);
+
+		/* 任务打印 */
+		DEV_PutStrToMem((U8 *) "\r\nTask3 is running! Tick is: %d", NIX_GetSystemTick());
+
+		/* 任务运行1秒 */
+		TEST_TaskRun(1000);
+
+		/* 释放信号量 */
+		(void) NIX_SemGive(gpstrSemMut);
 
 		/* 任务延迟3秒 */
 		(void) NIX_TaskDelay(300);
 	}
-
 }
+
 
 /**********************************************/
 //函数功能:串口打印任务，从队列中获取需要打印的消息缓冲，将缓冲中的数据打印到串口

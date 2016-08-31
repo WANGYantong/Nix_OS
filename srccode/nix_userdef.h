@@ -4,7 +4,7 @@
 #include "stm32f10x.h"
 
 //可修改的宏定义
-
+#define NIX_TASKPRIOINHER	//任务优先级继承宏定义
 #define NIX_INCLUDETASKHOOK	//任务钩子函数宏定义
 
 #define TICK                10	//操作系统调度周期，单位:ms

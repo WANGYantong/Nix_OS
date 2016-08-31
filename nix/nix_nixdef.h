@@ -135,6 +135,9 @@ typedef struct nix_tcb		//TCB结构体
 	U8 *pucTaskStack;	//创建任务的栈指针
 	U32 uiTaskFlag;		//任务标志
 	U8 ucTaskPrio;		//任务优先级
+#ifdef NIX_TASKPRIOINHER
+	U8 ucTaskPrioBackup;	//备份原有的优先级
+#endif
 	NIX_TASKOPT strTaskOpt;	//任务参数
 	U32 uiStillTick;	//延迟结束时间
 } NIX_TCB;

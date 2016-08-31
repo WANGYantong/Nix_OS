@@ -15,6 +15,7 @@
 /* 信号量参数偏移量 */
 #define SEMSCHOF            0	/* 信号量参数中调度方式的偏移量 */
 #define SEMTYPOF            2	/* 信号量参数中信号量类型的偏移量 */
+#define SEMPRIOF            5	/* 信号量参数中的优先级继承偏移量 */
 
 /* 信号量调度方式 */
 #define SEMFIFO             (1 << SEMSCHOF)	/* 信号量采用先进先出排列 */
@@ -25,10 +26,12 @@
 #define SEMCNT              (2 << SEMTYPOF)	/* 计数信号量 */
 #define SEMMUT              (4 << SEMTYPOF)	/*互斥信号量 */
 
+/* 任务优先级继承 */
+#define SEMPRIINH           (1 << SEMPRIOF)	/*任务的优先级继承 */
+
 /* 信号量初始值 */
 #define SEMEMPTY            0	/* 信号量为空状态 */
 #define SEMFULL             0xFFFFFFFF	/* 信号量为满状态 */
-
 
 /* 延迟等待的时间 */
 #define SEMNOWAIT           0	/* 不等待 */

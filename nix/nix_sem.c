@@ -4,7 +4,7 @@
 /**********************************************/
 //函数功能:创建信号量
 //输入参数:pstrSem:分配给信号量的内存地址
-//         uiSemOpt:信号量调度方式:FIFO or PRIO
+//         uiSemOpt:信号量配置参数
 //         uiInitVal:信号量初始值
 //返回值  :创建的信号量指针
 /**********************************************/
@@ -12,11 +12,9 @@ NIX_SEM *NIX_SemCreat(NIX_SEM * pstrSem, U32 uiSemOpt, U32 uiInitVal)
 {
 	U8 *pucSemMemAddr;
 
-	if ((((uiSemOpt & SEMSCHEDOPTMASK) != SEMFIFO)
-	     && ((uiSemOpt & SEMSCHEDOPTMASK) != SEMPRIO))
-	    || (((uiSemOpt & SEMTYPEMASK) != SEMBIN)
-		&& ((uiSemOpt & SEMTYPEMASK) != SEMCNT)
-		&& ((uiSemOpt & SEMTYPEMASK) != SEMMUT))) {
+	if (((SEMBIN != (SEMTYPEMASK & uiSemOpt)) && (SEMCNT != (SEMTYPEMASK & uiSemOpt)) && (SEMMUT != (SEMTYPEMASK & uiSemOpt)))
+	    || ((SEMFIFO != (SEMSCHEDOPTMASK & uiSemOpt)) && (SEMPRIO != (SEMSCHEDOPTMASK & uiSemOpt)))
+	    || (((SEMMUT != (SEMTYPEMASK & uiSemOpt)) || (SEMPRIO != (SEMSCHEDOPTMASK & uiSemOpt)))	&& (SEMPRIINH == (SEMPRIINHMASK & uiSemOpt)))) {
 		return (NIX_SEM *) NULL;
 	}
 
@@ -178,6 +176,12 @@ U32 NIX_SemTake(NIX_SEM * pstrSem, U32 uiDelayTick)
 						return RTN_SMTKOV;
 					}
 				} else {
+#ifdef NIX_TASKPRIOINHER
+
+					if ((pstrSem->uiSemOpt & SEMPRIINH) == SEMPRIINH) {
+						NIX_TaskPrioInheritance(pstrSem->pstrSemTask, gpstrCurTcb->ucTaskPrio);
+					}
+#endif
 					if (NIX_TaskPend(pstrSem, uiDelayTick) == RTN_FAIL) {
 						(void) NIX_IntUnLock();
 						return RTN_FAIL;
@@ -256,6 +260,12 @@ U32 NIX_SemGive(NIX_SEM * pstrSem)
 		}
 	}
 	if (ucTaskPendFlag == CHECKPENDTASK) {
+
+#ifdef NIX_TASKPRIOINHER
+
+		NIX_TaskPrioResume(gpstrCurTcb);
+
+#endif
 		pstrTcb = NIX_SemGetActiveTask(pstrSem);
 
 		if (pstrTcb != NULL) {
@@ -322,10 +332,9 @@ U32 NIX_SemFlushValue(NIX_SEM * pstrSem, U32 uiRtnValue)
 	if (pstrSem == NULL) {
 		return RTN_FAIL;
 	}
-
-    //被互斥信号量阻塞的任务不能被批量释放
-    //因为互斥信号量和任务相关
-    //只能被pstrSem->pstrSemTask相关联的任务通过SemGive函数释放
+	//被互斥信号量阻塞的任务不能被批量释放
+	//因为互斥信号量和任务相关
+	//只能被pstrSem->pstrSemTask相关联的任务通过SemGive函数释放
 	if ((pstrSem->uiSemOpt & SEMTYPEMASK) == SEMMUT) {
 		return RTN_FAIL;
 	}
@@ -391,11 +400,11 @@ U32 NIX_SemDelete(NIX_SEM * pstrSem)
 		return RTN_FAIL;
 	}
 
-    if((pstrSem->uiSemOpt & SEMTYPEMASK) != SEMMUT) {
-        if (NIX_SemFlushValue(pstrSem, RTN_SMTKDL) != RTN_SUCD) {
-            return RTN_FAIL;
-        }
-    }
+	if ((pstrSem->uiSemOpt & SEMTYPEMASK) != SEMMUT) {
+		if (NIX_SemFlushValue(pstrSem, RTN_SMTKDL) != RTN_SUCD) {
+			return RTN_FAIL;
+		}
+	}
 
 	if (pstrSem->pucSemMem != NULL) {
 		(void) NIX_IntLock();
