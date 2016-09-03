@@ -9,5 +9,6 @@
 #include "nix_task.h"
 #include "nix_queue.h"
 #include "nix_sem.h"
+#include "nix_debug.h"
 
 #endif

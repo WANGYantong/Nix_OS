@@ -9,6 +9,7 @@ typedef signed char S8;
 typedef short S16;
 typedef int S32;
 typedef void (*VFUNC) (void *);	//函数指针
+typedef void (*VFUNC1)(U8);     //函数指针
 
 #ifndef NULL
 #define NULL                ((void*)0)	//可以理解成空指针
@@ -24,6 +25,9 @@ typedef void (*VFUNC) (void *);	//函数指针
 //字节对齐掩码
 #define ALIGN4MASK          0xFFFFFFFC	//4字节对齐
 #define ALIGN8MASK          0xFFFFFFF8	//8字节对齐
+
+//获取指定地址的数据
+#define ADDRVAL(addr)      (*((volatile U32*)(addr)))
 
 //优先级选择
 #define PRIORITY256          256

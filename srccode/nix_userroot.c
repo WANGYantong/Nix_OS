@@ -12,10 +12,10 @@ void NIX_RootTask(void)
 	DEV_HardwareInit();
 
 	/* 创建任务1 */
-	(void) NIX_TaskCreat("Test1", TEST_TestTask1, NULL, NULL, TASKSTACK, 2, NULL);
+	(void) NIX_TaskCreat("Test1", TEST_TestTask1, NULL, NULL, TASKSTACK, 4, NULL);
 
 	/* 创建任务2 */
-	(void) NIX_TaskCreat("Test2", TEST_TestTask2, NULL, NULL, TASKSTACK, 2, NULL);
+	(void) NIX_TaskCreat("Test2", TEST_TestTask2, NULL, NULL, TASKSTACK, 3, NULL);
 
 	/* 创建任务3 */
 	(void) NIX_TaskCreat("Test3", TEST_TestTask3, NULL, NULL, TASKSTACK, 2, NULL);

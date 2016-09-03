@@ -33,6 +33,7 @@
 ; </h>
 
         EXTERN  NIX_PendSvContextSwitch
+        EXTERN  NIX_FaultIsrContext
 
 Stack_Size      EQU     0x00000200
 
@@ -65,7 +66,7 @@ __heap_limit
 __Vectors       DCD     __initial_sp               ; Top of Stack
                 DCD     Reset_Handler              ; Reset Handler
                 DCD     NMI_Handler                ; NMI Handler
-                DCD     HardFault_Handler          ; Hard Fault Handler
+                DCD     NIX_FaultIsrContext        ; Hard Fault Handler
                 DCD     MemManage_Handler          ; MPU Fault Handler
                 DCD     BusFault_Handler           ; Bus Fault Handler
                 DCD     UsageFault_Handler         ; Usage Fault Handler

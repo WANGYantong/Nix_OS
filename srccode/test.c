@@ -11,32 +11,26 @@ NIX_TCB *gpstrSerialTaskTcb;	/* 串口打印任务TCB指针 */
 /**********************************************/
 void TEST_TestTask1(void *pvPara)
 {
-	U32 uiDelayTime;
-
-	uiDelayTime = 500;
+	U32 auiArray[10];
+	U32 i;
 
 	while (1) {
 		/* 任务打印 */
 		DEV_PutStrToMem((U8 *) "\r\nTask1 is running! Tick is: %d", NIX_GetSystemTick());
 
-		/* 任务运行2秒 */
-		TEST_TaskRun(2000);
-
-		/* 任务延迟 */
-		(void) NIX_TaskDelay(uiDelayTime);
-
-		/* 满足条件则修改任务轮转调度时间 */
-		if ((500 == uiDelayTime) && (NIX_GetSystemTick() > 2000)) {
-			uiDelayTime = 150;
-
-			/* 设置任务轮转调度时间 */
-			NIX_TaskTimeSlice(50);
-
-			/* 任务打印 */
-			DEV_PutStrToMem((U8 *) "\r\nSet time slice to 50 ticks! Tick is: %d", NIX_GetSystemTick());
+		/* 系统运行超过20秒后填充数组 */
+		if (NIX_GetSystemTick() >= 2000) {
+			for (i = 0; i < 100; i++) {
+				auiArray[i] = i;
+			}
 		}
-	}
 
+		/* 任务运行0.5秒 */
+		TEST_TaskRun(500);
+
+		/* 任务延迟0.5秒 */
+		(void) NIX_TaskDelay(50);
+	}
 
 }
 
@@ -48,10 +42,6 @@ void TEST_TestTask1(void *pvPara)
 /**********************************************/
 void TEST_TestTask2(void *pvPara)
 {
-	U32 uiDelayTime;
-
-	uiDelayTime = 350;
-
 	while (1) {
 		/* 任务打印 */
 		DEV_PutStrToMem((U8 *) "\r\nTask2 is running! Tick is: %d", NIX_GetSystemTick());
@@ -59,13 +49,8 @@ void TEST_TestTask2(void *pvPara)
 		/* 任务运行2秒 */
 		TEST_TaskRun(2000);
 
-		/* 任务延迟 */
-		(void) NIX_TaskDelay(uiDelayTime);
-
-		/* 满足条件则修改任务延迟时间 */
-		if ((350 == uiDelayTime) && (NIX_GetSystemTick() > 2000)) {
-			uiDelayTime = 150;
-		}
+		/* 任务延迟3秒 */
+		(void) NIX_TaskDelay(300);
 	}
 
 }
@@ -81,13 +66,12 @@ void TEST_TestTask3(void *pvPara)
 		/* 任务打印 */
 		DEV_PutStrToMem((U8 *) "\r\nTask3 is running! Tick is: %d", NIX_GetSystemTick());
 
-		/* 任务运行2秒 */
-		TEST_TaskRun(2000);
+		/* 任务运行1秒 */
+		TEST_TaskRun(1000);
 
-		/* 任务延迟1.5秒 */
-		(void) NIX_TaskDelay(150);
+		/* 任务延迟2.5秒 */
+		(void) NIX_TaskDelay(250);
 	}
-
 }
 
 
@@ -136,7 +120,8 @@ void TEST_TaskCreatePrint(NIX_TCB * pstrTcb)
 {
 	if (pstrTcb != (NIX_TCB *) NULL) {
 		DEV_PutStrToMem((U8 *)
-				"\r\nTask %s is created! Tick is: %d", pstrTcb->pucTaskName, NIX_GetSystemTick());
+				"\r\nTask %s 0x%08X is created! Tick is: %d", pstrTcb->pucTaskName, pstrTcb,
+				NIX_GetSystemTick());
 	} else {
 		DEV_PutStrToMem((U8 *)
 				"\r\nFail to create task! Tick is: %d", NIX_GetSystemTick());

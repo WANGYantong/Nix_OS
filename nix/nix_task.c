@@ -122,6 +122,8 @@ U32 NIX_TaskDelete(NIX_TCB * pstrTcb)
 	}
 
 	if (pstrTcb == gpstrCurTcb) {
+		NIX_SaveTaskContext();
+
 		gpstrCurTcb = NULL;
 
 #ifdef NIX_TASKROUNDROBIN

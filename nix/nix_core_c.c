@@ -79,6 +79,15 @@ void NIX_SystemVarInit(void)
 	NIX_TaskHookInit();
 #endif
 
+#ifdef NIX_TASKROUNDROBIN
+	NIX_TaskTimeSlice(0);
+#endif
+
+#ifdef NIX_DEBUGCONTEXT
+	NIX_TaskContextInit();
+	gpstrContext->vfSendChar = (VFUNC1) NULL;
+#endif
+
 	//初始化任务ready调度表
 	NIX_TaskSchedTabInit(&gstrReadyTab);
 

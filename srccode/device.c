@@ -23,6 +23,11 @@ void DEV_SoftwareInit(void)
 	NIX_TaskDeleteHookAdd(TEST_TaskDeletePrint);
 
 #endif
+
+#ifdef NIX_DEBUGCONTEXT
+	NIX_SendCharFuncInit(DEV_PutChar);
+#endif
+
 }
 
 /**********************************************/

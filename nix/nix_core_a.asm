@@ -42,6 +42,11 @@ NIX_PendSvContextSwitch
     POP    {R0}                     ;取出压入栈中的LR
     STMIA  R12, {R0}                ;将LR保存到寄存器组中的Exc_Rtn
 
+    ;将切换前任务的寄存器组和栈信息保存到内存
+    LDR    R0, =NIX_SaveTaskContext ;函数地址存入R0
+    ADR.W  R14, {PC}+0x7;           ;保存返回地址
+    BX     R0                       ;执行NIX_SaveTaskContext函数
+
 __BACKUP_REG
     ;任务调度完毕, 恢复将要运行任务现场
     LDR    R0, =gpstrNextTaskReg    ;获取变量gpstrNextTaskReg的地址
@@ -97,6 +102,31 @@ NIX_GetXpsr
     MRS    R0, XPSR     ;获取XPSR数值
     BX     R14          ;函数返回
 
+    ;函数功能：将寄存器被分到当前任务栈中，并使用硬件故障中断服务函数
+    ;入口参数：none
+    ;返 回 值：none
+NIX_FaultIsrContext
+    
+    ;保存当前任务的栈信息
+    PUSH    {R14}                       ;将返回值压入栈中
+    MOV     R14,R13                     ;将SP存入LR
+    LDR     R0, =gpstrNextTaskReg       ;获取变量gpstrNextTaskReg的地址
+    LDR     R12, [R0]                   ;将当前任务寄存器组地址存入R12 
+    ADD     R14, #0X4                   ;LR指向栈中8个寄存器的R0
+    LDMIA   R14!,{R0 - R3}              ;取出R0-R3的数值
+    STMIA   R12!,{R0 - R11}             ;将R0-R11的数值保存到寄存器中
+    LDMIA   R14, {R0 - R3}              ;取出R12,LR,PC,XPSR寄存器
+    SUB     R14, #0X10                  ;LR指向栈中8个寄存器的R0
+    STMIA   R12!,{R0}                   ;将R12保存在寄存器组中
+    STMIA   R12!,{R14}                  ;将SP保存到寄存器组中
+    STMIA   R12!,{R1 - R3}              ;将LR,PC,XPSR保存到寄存器组中
+    POP     {R0}                        ;取出压入栈中的LR
+    STMIA   R12, {R0}                   ;将LR保存到寄存器组中的Exc_Rtn
+
+    ;打印所有保存的信息
+    LDR     R0, =NIX_FaultIsrPrint      ;函数地址存入R0
+    ADR.W   R14,{PC}+0X7                ;保存返回地址
+    BX      R0                          ;跳转，执行NIX_FaultIsrPrint函数
 
     ALIGN
 
