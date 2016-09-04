@@ -35,6 +35,12 @@ void NIX_TaskStackInit(NIX_TCB * pstrTcb, VFUNC vfFuncPointer, void *pvPara)
 	pstrRegSp->uiXpsr = MODE_USR;
 	pstrRegSp->uiExc_Rtn = RTN_THREAD_MSP;
 
+#ifdef NIX_DEBUGSTACKCHECK
+
+	NIX_TaskStackCheckInit(pstrTcb);
+
+#endif
+
 	//构造任务初始运行时的栈，在任务运行时由硬件自动取出
 	puiStack = (U32 *) pstrTcb;
 	*(--puiStack) = pstrRegSp->uiXpsr;

@@ -32,6 +32,11 @@ typedef struct nix_contmsg {
 
 #endif
 
+//栈检查填充的数据
+#ifdef NIX_DEBUGSTACKCHECK
+#define STACKCHECKVALUE     0xCCCCCCCC
+#endif
+
 /****************************************************************/
 #ifdef NIX_DEBUGCONTEXT
 extern NIX_CONTHEAD *gpstrContext;
@@ -52,6 +57,10 @@ extern void NIX_PrintContext(void);
 extern void NIX_SendChar(U8 ucChar);
 extern void NIX_SendString(U8 * pvStringPt, ...);
 extern void NIX_IfValidString(U8 * *pucString);
+#endif
+
+#ifdef NIX_DEBUGSTACKCHECK
+extern void NIX_TaskStackCheckInit(NIX_TCB* pstrTcb);
 #endif
 
 #endif

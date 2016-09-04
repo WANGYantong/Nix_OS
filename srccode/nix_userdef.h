@@ -7,7 +7,8 @@
 #define NIX_INCLUDETASKHOOK	//任务钩子函数宏定义
 //#define NIX_TASKPRIOINHER	//任务优先级继承宏定义
 //#define NIX_TASKROUNDROBIN	//同等优先级任务轮转调度
-#define NIX_DEBUGCONTEXT    //记录寄存器和栈信息
+//#define NIX_DEBUGCONTEXT    //记录寄存器和栈信息
+#define NIX_DEBUGSTACKCHECK   //检查任务栈空间使用情况
 
 #ifdef NIX_DEBUGCONTEXT
     #define NIX_CONTEXTADDR     0x2000B000      //记录内存的起始地址

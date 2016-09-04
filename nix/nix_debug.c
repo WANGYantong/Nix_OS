@@ -417,3 +417,43 @@ void NIX_IfValidString(U8 ** pucString)
 }
 
 #endif
+
+#ifdef NIX_DEBUGSTACKCHECK
+
+/**********************************************/
+//函数功能:检查任务栈功能的初始化函数
+//输入参数:pstrTcb:需要检查的任务TCB
+//返回值  :none
+/**********************************************/
+void NIX_TaskStackCheckInit(NIX_TCB * pstrTcb)
+{
+	U32 uiStackBottom;
+	U32 i;
+
+	uiStackBottom = ((U32) pstrTcb->pucTaskStack + 3) & ALIGN4MASK;
+	for (i = 0; i < (U32) pstrTcb - uiStackBottom; i += 4) {
+		ADDRVAL(uiStackBottom + i) = STACKCHECKVALUE;
+	}
+}
+
+/**********************************************/
+//函数功能:检查任务栈剩余未用的长度
+//输入参数:pstrTcb:需要检查的任务TCB
+//返回值  :任务栈剩余未用的长度，单位：字节
+/**********************************************/
+U32 NIX_TaskStackCheck(NIX_TCB * pstrTcb)
+{
+	U32 uiStackBottom;
+	U32 i;
+
+	uiStackBottom = ((U32) pstrTcb->pucTaskStack + 3) & ALIGN4MASK;
+	for (i = 0; i < (U32) pstrTcb - uiStackBottom; i += 4) {
+		if (ADDRVAL(uiStackBottom + i) != STACKCHECKVALUE) {
+			break;
+		}
+	}
+
+	return i;
+}
+
+#endif

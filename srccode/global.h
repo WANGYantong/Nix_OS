@@ -4,7 +4,7 @@
 #include "nix.h"
 
 //版本号:主版本号.子版本号.修正版本号.编译版本号
-#define SOFTWARE_VER                "002.007.001.001"
+#define SOFTWARE_VER                "003.004.001.001"
 
 #define BUFPOOLNUM                  20	//BUFPOOL数量
 #define MSGBUFLEN                   100	//每个BUF的长度，单位:字节

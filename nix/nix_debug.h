@@ -6,4 +6,8 @@
 extern void NIX_SendCharFuncInit(VFUNC1 vfFuncPointer);
 #endif
 
+#ifdef NIX_DEBUGSTACKCHECK
+extern U32 NIX_TaskStackCheck(NIX_TCB * pstrTcb);
+#endif
+
 #endif

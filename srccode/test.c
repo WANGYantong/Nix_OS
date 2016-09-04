@@ -11,26 +11,48 @@ NIX_TCB *gpstrSerialTaskTcb;	/* 串口打印任务TCB指针 */
 /**********************************************/
 void TEST_TestTask1(void *pvPara)
 {
-	U32 auiArray[10];
-	U32 i;
+	U32 uiStackRemainLen;
+	U32 uiTick;
+
+	/* 打印栈信息 */
+	uiStackRemainLen = NIX_TaskStackCheck(NIX_GetCurrentTcb());
+	DEV_PutStrToMem((U8 *) "\r\nTask1 stack remain %d bytes, Tick is: %d", uiStackRemainLen, NIX_GetSystemTick());
 
 	while (1) {
-		/* 任务打印 */
-		DEV_PutStrToMem((U8 *) "\r\nTask1 is running! Tick is: %d", NIX_GetSystemTick());
-
-		/* 系统运行超过20秒后填充数组 */
-		if (NIX_GetSystemTick() >= 2000) {
-			for (i = 0; i < 100; i++) {
-				auiArray[i] = i;
-			}
-		}
-
 		/* 任务运行0.5秒 */
 		TEST_TaskRun(500);
 
-		/* 任务延迟0.5秒 */
-		(void) NIX_TaskDelay(50);
+		/* 获取系统时间 */
+		uiTick = NIX_GetSystemTick();
+
+		/* 系统运行时间在10~20秒之间 */
+		if ((uiTick >= 1000) && (uiTick < 2000)) {
+			/* 打印计算数值 */
+			DEV_PutStrToMem((U8 *) "\r\nTask1 1 add to 40 value is %d, Tick is: %d",
+					TEST_Add(40), NIX_GetSystemTick());
+		}
+		/* 系统运行时间在20~30秒之间 */
+		else if ((uiTick >= 2000) && (uiTick < 3000)) {
+			/* 打印计算数值 */
+			DEV_PutStrToMem((U8 *) "\r\nTask1 1 add to 60 value is %d, Tick is: %d",
+					TEST_Add(60), NIX_GetSystemTick());
+		}
+		/* 系统运行时间超过30秒 */
+		else if (uiTick >= 3000) {
+			/* 打印计算数值 */
+			DEV_PutStrToMem((U8 *) "\r\nTask1 1 add to 80 value is %d, Tick is: %d",
+					TEST_Add(80), NIX_GetSystemTick());
+		}
+
+		/* 任务延迟2秒 */
+		(void) NIX_TaskDelay(200);
+
+		/* 打印栈信息 */
+		uiStackRemainLen = NIX_TaskStackCheck(NIX_GetCurrentTcb());
+		DEV_PutStrToMem((U8 *) "\r\nTask1 stack remain %d bytes, Tick is: %d",
+				uiStackRemainLen, NIX_GetSystemTick());
 	}
+
 
 }
 
@@ -42,17 +64,47 @@ void TEST_TestTask1(void *pvPara)
 /**********************************************/
 void TEST_TestTask2(void *pvPara)
 {
+	U32 uiStackRemainLen;
+	U32 uiTick;
+
+	/* 打印栈信息 */
+	uiStackRemainLen = NIX_TaskStackCheck(NIX_GetCurrentTcb());
+	DEV_PutStrToMem((U8 *) "\r\nTask2 stack remain %d bytes, Tick is: %d", uiStackRemainLen, NIX_GetSystemTick());
+
 	while (1) {
-		/* 任务打印 */
-		DEV_PutStrToMem((U8 *) "\r\nTask2 is running! Tick is: %d", NIX_GetSystemTick());
+		/* 任务运行0.5秒 */
+		TEST_TaskRun(500);
 
-		/* 任务运行2秒 */
-		TEST_TaskRun(2000);
+		/* 获取系统时间 */
+		uiTick = NIX_GetSystemTick();
 
-		/* 任务延迟3秒 */
-		(void) NIX_TaskDelay(300);
+		/* 系统运行时间在10~20秒之间 */
+		if ((uiTick >= 1000) && (uiTick < 2000)) {
+			/* 打印计算数值 */
+			DEV_PutStrToMem((U8 *) "\r\nTask2 1 add to 80 value is %d, Tick is: %d",
+					TEST_Add(80), NIX_GetSystemTick());
+		}
+		/* 系统运行时间在20~30秒之间 */
+		else if ((uiTick >= 2000) && (uiTick < 3000)) {
+			/* 打印计算数值 */
+			DEV_PutStrToMem((U8 *) "\r\nTask2 1 add to 60 value is %d, Tick is: %d",
+					TEST_Add(60), NIX_GetSystemTick());
+		}
+		/* 系统运行时间超过30秒 */
+		else if (uiTick >= 3000) {
+			/* 打印计算数值 */
+			DEV_PutStrToMem((U8 *) "\r\nTask2 1 add to 40 value is %d, Tick is: %d",
+					TEST_Add(40), NIX_GetSystemTick());
+		}
+
+		/* 任务延迟2秒 */
+		(void) NIX_TaskDelay(200);
+
+		/* 打印栈信息 */
+		uiStackRemainLen = NIX_TaskStackCheck(NIX_GetCurrentTcb());
+		DEV_PutStrToMem((U8 *) "\r\nTask2 stack remain %d bytes, Tick is: %d",
+				uiStackRemainLen, NIX_GetSystemTick());
 	}
-
 }
 
 /**********************************************/
@@ -62,18 +114,59 @@ void TEST_TestTask2(void *pvPara)
 /**********************************************/
 void TEST_TestTask3(void *pvPara)
 {
+	U32 uiStackRemainLen;
+	U32 uiTick;
+
+	/* 打印栈信息 */
+	uiStackRemainLen = NIX_TaskStackCheck(NIX_GetCurrentTcb());
+	DEV_PutStrToMem((U8 *) "\r\nTask3 stack remain %d bytes, Tick is: %d", uiStackRemainLen, NIX_GetSystemTick());
+
 	while (1) {
-		/* 任务打印 */
-		DEV_PutStrToMem((U8 *) "\r\nTask3 is running! Tick is: %d", NIX_GetSystemTick());
+		/* 任务运行0.5秒 */
+		TEST_TaskRun(500);
 
-		/* 任务运行1秒 */
-		TEST_TaskRun(1000);
+		/* 获取系统时间 */
+		uiTick = NIX_GetSystemTick();
 
-		/* 任务延迟2.5秒 */
-		(void) NIX_TaskDelay(250);
+		/* 系统运行时间超过10秒 */
+		if (uiTick >= 1000) {
+			/* 打印计算数值 */
+			DEV_PutStrToMem((U8 *) "\r\nTask3 1 add to 60 value is %d, Tick is: %d",
+					TEST_Add(60), NIX_GetSystemTick());
+
+			/* 打印计算数值 */
+			DEV_PutStrToMem((U8 *) "\r\nTask3 1 add to 80 value is %d, Tick is: %d",
+					TEST_Add(80), NIX_GetSystemTick());
+
+			/* 打印计算数值 */
+			DEV_PutStrToMem((U8 *) "\r\nTask3 1 add to 40 value is %d, Tick is: %d",
+					TEST_Add(40), NIX_GetSystemTick());
+		}
+
+		/* 任务延迟2秒 */
+		(void) NIX_TaskDelay(200);
+
+		/* 打印栈信息 */
+		uiStackRemainLen = NIX_TaskStackCheck(NIX_GetCurrentTcb());
+		DEV_PutStrToMem((U8 *) "\r\nTask3 stack remain %d bytes, Tick is: %d",
+				uiStackRemainLen, NIX_GetSystemTick());
 	}
+
 }
 
+/***********************************************************************************
+函数功能: 测试函数, 采用递归调用计算累加和.
+入口参数: none.
+返 回 值: 计算结果.
+***********************************************************************************/
+U32 TEST_Add(U32 uiNum)
+{
+	if (1 == uiNum) {
+		return 1;
+	}
+
+	return uiNum + TEST_Add(uiNum - 1);
+}
 
 /**********************************************/
 //函数功能:串口打印任务，从队列中获取需要打印的消息缓冲，将缓冲中的数据打印到串口
