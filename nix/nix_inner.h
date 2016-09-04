@@ -10,5 +10,6 @@
 #include "nix_userroot_inner.h"
 #include "nix_sem_inner.h"
 #include "nix_queue_inner.h"
+#include "nix_debug_inner.h"
 
 #endif

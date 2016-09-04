@@ -79,6 +79,15 @@ void NIX_SystemVarInit(void)
 	NIX_TaskHookInit();
 #endif
 
+#ifdef NIX_TASKROUNDROBIN
+	NIX_TaskTimeSlice(0);
+#endif
+
+#ifdef NIX_DEBUGCONTEXT
+	NIX_TaskContextInit();
+	gpstrContext->vfSendChar = (VFUNC1) NULL;
+#endif
+
 	//初始化任务ready调度表
 	NIX_TaskSchedTabInit(&gstrReadyTab);
 
@@ -184,6 +193,14 @@ void NIX_TaskTick(void)
 {
 	guiTick++;
 	gucTickSched = TICKSCHEDSET;
+
+#ifdef NIX_TASKROUNDROBIN
+
+	if ((guiTimeSlice != 0) && (gpstrCurTcb != NULL)) {
+		gauiSliceCnt[gpstrCurTcb->ucTaskPrio]++;
+	}
+#endif
+
 	NIX_IntPendSvSet();
 }
 
@@ -311,13 +328,39 @@ NIX_LIST *NIX_TaskDelFromSchedTab(NIX_LIST * pstrList, NIX_PRIOFLAG * pstrPrioFl
 NIX_TCB *NIX_TaskReadyTabSched(void)
 {
 	NIX_TCB *pstrTcb;
+	NIX_LIST *pstrList;
+	NIX_LIST *pstrNode;
+#ifdef NIX_TASKROUNDROBIN
+	NIX_LIST *pstrNextNode;
+#endif
 	NIX_TCBQUE *pstrTaskQue;
 	U8 ucTaskPrio;
 
 	ucTaskPrio = NIX_TaskGetHighestPrio(&gstrReadyTab.strFlag);
-	pstrTaskQue = (NIX_TCBQUE *)
-	    NIX_ListEmpInq(&gstrReadyTab.astrList[ucTaskPrio]);
+	pstrList = &gstrReadyTab.astrList[ucTaskPrio];
+	pstrNode = NIX_ListEmpInq(pstrList);
+	pstrTaskQue = (NIX_TCBQUE *) pstrNode;
 	pstrTcb = pstrTaskQue->pstrTcb;
+
+#ifdef NIX_TASKROUNDROBIN
+
+	if (guiTimeSlice != 0) {
+		if (pstrTcb == gpstrCurTcb) {
+			if (gauiSliceCnt[gpstrCurTcb->ucTaskPrio] >= guiTimeSlice) {
+				gauiSliceCnt[gpstrCurTcb->ucTaskPrio] = 0;
+
+				pstrNextNode = NIX_ListNextNodeEmpInq(pstrList, pstrNode);
+
+				if (pstrNextNode != NULL) {
+					(void) NIX_ListNodeDelete(pstrList);
+					NIX_ListNodeAdd(pstrList, pstrNode);
+					pstrTaskQue = (NIX_TCBQUE *) pstrNextNode;
+					pstrTcb = pstrTaskQue->pstrTcb;
+				}
+			}
+		}
+	}
+#endif
 
 	return pstrTcb;
 }
