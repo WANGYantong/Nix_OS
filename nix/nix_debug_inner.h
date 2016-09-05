@@ -37,9 +37,18 @@ typedef struct nix_contmsg {
 #define STACKCHECKVALUE     0xCCCCCCCC
 #endif
 
+#ifdef NIX_DEBUGCPUSHARE
+#define CPUSHARETIME        (1000 / TICK)	//统计CPU占有率的周期，单位tick
+#define SYSTICKPERIOD       0x1000000	//tick定时器每个tick的计数值
+#endif
+
 /****************************************************************/
 #ifdef NIX_DEBUGCONTEXT
 extern NIX_CONTHEAD *gpstrContext;
+#endif
+
+#ifdef NIX_DEBUGCPUSHARE
+extern U32 guiCpuSharePeriod;
 #endif
 
 /****************************************************************/
@@ -60,7 +69,12 @@ extern void NIX_IfValidString(U8 * *pucString);
 #endif
 
 #ifdef NIX_DEBUGSTACKCHECK
-extern void NIX_TaskStackCheckInit(NIX_TCB* pstrTcb);
+extern void NIX_TaskStackCheckInit(NIX_TCB * pstrTcb);
+#endif
+
+#ifdef NIX_DEBUGCPUSHARE
+extern void NIX_TaskCPUShareInit(NIX_TCB * pstrTcb);
+extern void NIX_CpuShareStatistic(NIX_TCB * pstrOldTcb, NIX_TCB * pstrNewTcb);
 #endif
 
 #endif

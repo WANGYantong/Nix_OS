@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include "nix_inner.h"
 
+NIX_LIST gstrTaskList;
+
 #ifdef NIX_TASKROUNDROBIN
 U32 guiTimeSlice;
 U32 gauiSliceCnt[PRIORITYNUM];
@@ -121,6 +123,8 @@ U32 NIX_TaskDelete(NIX_TCB * pstrTcb)
 		free(pstrTcb->pucTaskStack);
 	}
 
+	(void) NIX_ListCurNodeDelete(&gstrTaskList, &pstrTcb->strTaskQue.strQueHead);
+
 	if (pstrTcb == gpstrCurTcb) {
 		NIX_SaveTaskContext();
 
@@ -192,10 +196,19 @@ NIX_TCB *NIX_TaskTcbInit(U8 * pucTaskName, VFUNC vfFuncPointer,
 
 	NIX_TaskStackInit(pstrTcb, vfFuncPointer, pvPara);
 
+	NIX_ListNodeAdd(&gstrTaskList, &pstrTcb->strTaskQue.strQueHead);
+
+#ifdef NIX_DEBUGCPUSHARE
+	NIX_TaskCPUShareInit(pstrTcb);
+#endif
+
 	pstrTcb->uiTaskFlag = 0;
 	pstrTcb->uiTaskFlag |= uiTaskFlag;
+
+	pstrTcb->strTaskQue.pstrTcb = pstrTcb;
 	pstrTcb->strTcbQue.pstrTcb = pstrTcb;
 	pstrTcb->strSemQue.pstrTcb = pstrTcb;
+
 	pstrTcb->ucTaskPrio = ucTaskPrio;
 	pstrTcb->pucTaskName = pucTaskName;
 
@@ -382,6 +395,17 @@ U32 NIX_TaskPend(NIX_SEM * pstrSem, U32 uiDelayTick)
 
 	return RTN_SUCD;
 }
+
+/***********************************************************************************
+函数功能: 获取任务链表根节点指针.
+入口参数: none.
+返 回 值: 任务链表根节点指针.
+***********************************************************************************/
+NIX_LIST *NIX_GetTaskLinkRoot(void)
+{
+	return &gstrTaskList;
+}
+
 
 #ifdef NIX_TASKPRIOINHER
 

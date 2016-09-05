@@ -7,6 +7,9 @@
 NIX_CONTHEAD *gpstrContext;
 #endif
 
+#ifdef NIX_DEBUGCPUSHARE
+U32 guiCpuSharePeriod;
+#endif
 /**********************************************/
 //函数功能:将切换前的任务信息保存到内存
 //输入参数:none
@@ -454,6 +457,74 @@ U32 NIX_TaskStackCheck(NIX_TCB * pstrTcb)
 	}
 
 	return i;
+}
+
+#endif
+
+#ifdef NIX_DEBUGCPUSHARE
+
+/**********************************************/
+//函数功能:初始化任务的CPU占有率结构
+//输入参数:pstrTcb:需要初始化的任务TCB
+//返回值  :none
+/**********************************************/
+void NIX_TaskCPUShareInit(NIX_TCB * pstrTcb)
+{
+	pstrTcb->strCpushare.uiSysTickVal = 0;
+	pstrTcb->strCpushare.uiCounter = 0;
+	pstrTcb->strCpushare.uiCPUShare = 0;
+}
+
+/**********************************************/
+//函数功能:对每个任务的CPU占有率进行统计
+//输入参数:pstrOldTcb:切换前的任务TCB指针
+//         pstrNewTcb:切换后的任务TCB指针
+//返回值  :none
+/**********************************************/
+void NIX_CpuShareStatistic(NIX_TCB * pstrOldTcb, NIX_TCB * pstrNewTcb)
+{
+	static U32 suiTick = 0;
+	NIX_LIST *pstrTaskList;
+	NIX_TCB *pstrTaskTcb;
+	U32 uiSysTickVal;
+
+	uiSysTickVal = SysTick->VAL;
+
+	if (pstrOldTcb != NULL) {
+		if (guiTick == suiTick) {
+			pstrOldTcb->strCpushare.uiCounter += pstrOldTcb->strCpushare.uiSysTickVal - uiSysTickVal;
+		} else {
+			pstrOldTcb->strCpushare.uiCounter +=
+			    pstrOldTcb->strCpushare.uiSysTickVal + SYSTICKPERIOD - uiSysTickVal;
+		}
+	}
+
+	suiTick = guiTick;
+	pstrNewTcb->strCpushare.uiSysTickVal = uiSysTickVal;
+
+	if (guiCpuSharePeriod == CPUSHARETIME) {
+		pstrTaskList = &gstrTaskList;
+
+		while (NULL != (pstrTaskList = NIX_ListNextNodeEmpInq(&gstrTaskList, pstrTaskList))) {
+			pstrTaskTcb = ((NIX_TCBQUE *) pstrTaskList)->pstrTcb;
+			pstrTaskTcb->strCpushare.uiCPUShare =
+			    (pstrTaskTcb->strCpushare.uiCounter +
+			     SYSTICKPERIOD / 2) / SYSTICKPERIOD * 100 / CPUSHARETIME;
+			pstrTaskTcb->strCpushare.uiCounter = 0;
+		}
+
+		guiCpuSharePeriod = 0;
+	}
+}
+
+/**********************************************/
+//函数功能:获取任务的CPU占有率
+//输入参数:pstrTcb:需要获取CPU占有率的任务TCB指针
+//返回值  :任务的CPU占有率，单位1%
+/**********************************************/
+U32 NIX_GetCpuShare(NIX_TCB * pstrTcb)
+{
+	return pstrTcb->strCpushare.uiCPUShare;
 }
 
 #endif
