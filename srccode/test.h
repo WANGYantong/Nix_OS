@@ -3,7 +3,7 @@
 
 #include "global.h"
 
-extern void TEST_TaskRun (U32 uiMs);
-extern void TEST_PrintCpuUtilize (void);
+extern void TEST_TaskRun(U32 uiMs);
+extern void TEST_PrintCpuUtilize(void);
 
 #endif
