@@ -9,7 +9,7 @@ typedef signed char S8;
 typedef short S16;
 typedef int S32;
 typedef void (*VFUNC) (void *);	//函数指针
-typedef void (*VFUNC1)(U8);     //函数指针
+typedef void (*VFUNC1) (U8);	//函数指针
 
 #ifndef NULL
 #define NULL                ((void*)0)	//可以理解成空指针
@@ -129,11 +129,22 @@ typedef struct nix_sem		//信号量结构体
 	struct nix_tcb *pstrSemTask;	//获取到互斥信号量的任务
 } NIX_SEM;
 
+#ifdef NIX_DEBUGCPUSHARE
+
+typedef struct nix_cpushare {
+	U32 uiSysTickVal;	//记录任务切换进来的时钟值
+	U32 uiCounter;		//CPU占有的计数值
+	U32 uiCPUShare;		//CPU占有率
+} NIX_CPUSHARE;
+
+#endif
+
 typedef struct nix_tcb		//TCB结构体
 {
 	STACKREG strStackReg;	//需要保存的寄存器组
-	NIX_TCBQUE strTcbQue;	//TCB结构队列
-	NIX_TCBQUE strSemQue;	//sem表队列
+	NIX_TCBQUE strTaskQue;	//任务链表
+	NIX_TCBQUE strTcbQue;	//TCB结构队列,挂接到ready以及delay表上
+	NIX_TCBQUE strSemQue;	//sem表队列，挂接到阻塞的信号量上
 	NIX_SEM *pstrSem;	//阻塞任务的信号量指针
 	U8 *pucTaskName;	//任务名称指针
 	U8 *pucTaskStack;	//创建任务的栈指针
@@ -144,6 +155,9 @@ typedef struct nix_tcb		//TCB结构体
 #endif
 	NIX_TASKOPT strTaskOpt;	//任务参数
 	U32 uiStillTick;	//延迟结束时间
+#ifdef NIX_DEBUGCPUSHARE
+	NIX_CPUSHARE strCpushare;	//CPU占有率结构
+#endif
 } NIX_TCB;
 
 #endif

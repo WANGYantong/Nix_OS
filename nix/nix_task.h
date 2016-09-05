@@ -32,6 +32,7 @@ extern U32 NIX_TaskDelete(NIX_TCB * pstrTcb);
 extern void NIX_TaskSelfDelete(void);
 extern U32 NIX_TaskDelay(U32 uiDelayTick);
 extern U32 NIX_TaskWake(NIX_TCB * pstrTcb);
+extern NIX_LIST *NIX_GetTaskLinkRoot(void);
 
 #ifdef NIX_TASKROUNDROBIN
 extern void NIX_TaskTimeSlice(U32 uiTimeSlice);

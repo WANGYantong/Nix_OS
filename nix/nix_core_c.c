@@ -94,6 +94,13 @@ void NIX_SystemVarInit(void)
 	//初始化任务delay调度表
 	NIX_ListInit(&gstrDelayTab);
 
+	//初始化任务链表
+	NIX_ListInit(&gstrTaskList);
+
+#ifdef NIX_DEBUGCPUSHARE
+	guiCpuSharePeriod = 0;
+#endif
+
 	//创建前根任务
 	gpstrRootTaskTcb =
 	    NIX_TaskCreat(ROOTTASKNAME, NIX_BeforeRootTask, NULL, NULL, ROOTTASKSTACK, USERHIGHESTPRIO, NULL);
@@ -192,10 +199,14 @@ U32 NIX_GetUser(void)
 void NIX_TaskTick(void)
 {
 	guiTick++;
+
+#ifdef NIX_DEBUGCPUSHARE
+	guiCpuSharePeriod++;
+#endif
+
 	gucTickSched = TICKSCHEDSET;
 
 #ifdef NIX_TASKROUNDROBIN
-
 	if ((guiTimeSlice != 0) && (gpstrCurTcb != NULL)) {
 		gauiSliceCnt[gpstrCurTcb->ucTaskPrio]++;
 	}
@@ -246,6 +257,10 @@ void NIX_TaskSched(void)
 		NIX_TaskDelayTabSched();
 	}
 	pstrTcb = NIX_TaskReadyTabSched();
+
+#ifdef NIX_DEBUGCPUSHARE
+	NIX_CpuShareStatistic(gpstrCurTcb, pstrTcb);
+#endif
 
 #ifdef NIX_INCLUDETASKHOOK
 	if (gvfTaskSwitchHook != (VFHSWT) NULL) {

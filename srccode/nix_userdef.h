@@ -5,14 +5,15 @@
 
 //可修改的宏定义
 #define NIX_INCLUDETASKHOOK	//任务钩子函数宏定义
-//#define NIX_TASKPRIOINHER	//任务优先级继承宏定义
-//#define NIX_TASKROUNDROBIN	//同等优先级任务轮转调度
-//#define NIX_DEBUGCONTEXT    //记录寄存器和栈信息
-#define NIX_DEBUGSTACKCHECK   //检查任务栈空间使用情况
+//#define NIX_TASKPRIOINHER     //任务优先级继承宏定义
+//#define NIX_TASKROUNDROBIN    //同等优先级任务轮转调度
+#define NIX_DEBUGCONTEXT	//记录寄存器和栈信息
+//#define NIX_DEBUGSTACKCHECK   //检查任务栈空间使用情况
+#define NIX_DEBUGCPUSHARE	//CPU使用率统计功能
 
 #ifdef NIX_DEBUGCONTEXT
-    #define NIX_CONTEXTADDR     0x2000B000      //记录内存的起始地址
-    #define NIX_CONTEXTLEN      0x1000          //记录的长度，单位：字节
+#define NIX_CONTEXTADDR     0x2000B000	//记录内存的起始地址
+#define NIX_CONTEXTLEN      0x1000	//记录的长度，单位：字节
 #endif
 
 #define TICK                10	//操作系统调度周期，单位:ms

@@ -10,6 +10,9 @@
 #define TASKSTACKFLAG           0x00000002	//任务从堆中申请任务栈标记，0:不申请；1:申请
 #define TASKPRIINHFLAG          0x00000004	//任务优先级继承标志，0:不继承；1:继承
 
+/******************************************************************/
+extern NIX_LIST gstrTaskList;
+
 #ifdef NIX_INCLUDETASKHOOK
 extern VFHCRT gvfTaskCreateHook;
 extern VFHSWT gvfTaskSwitchHook;
