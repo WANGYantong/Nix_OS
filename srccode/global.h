@@ -6,10 +6,32 @@
 //版本号:主版本号.子版本号.修正版本号.编译版本号
 #define SOFTWARE_VER                "003.004.001.001"
 
+#define BUF_MAX_LEN                 256
+
 #define BUFPOOLNUM                  40	//BUFPOOL数量
 #define MSGBUFLEN                   100	//每个BUF的长度，单位:字节
 
 #define TASKSTACK                   1024	//任务栈大小，单位:字节
+
+typedef struct slist		//单向链表结构
+{
+	struct slist *next;
+} SLIST;
+
+typedef struct buf_pool		//缓冲池结构
+{
+	SLIST list;		//缓冲池链表根指针
+	NIX_SEM *psem;		//缓冲池互斥操作的二进制信号量
+	U32 len;		//缓冲池中每个缓冲的长度
+	U32 s_num;		//从堆中静态申请的缓冲的数量
+	U32 d_num;		//从缓冲池中动态申请的缓冲的数量
+} BUF_POOL;
+
+typedef struct buf_node		//缓冲节点结构
+{
+	NIX_LIST *list;		//缓冲节点相连的链表指针，在缓冲区单向链表，在消息队列中双向链表
+	BUF_POOL *phead;	//指向缓冲池
+} BUF_NODE;
 
 typedef struct msgbuf		//消息缓冲结构
 {
