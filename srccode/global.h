@@ -46,6 +46,21 @@ typedef struct bufpool		//消息缓冲池结构
 	MSGBUF astrBufPool[BUFPOOLNUM];	//缓冲池
 } BUFPOOL;
 
+typedef struct task_str     //任务结构
+{
+    SLIST list;             //任务链表节点
+    NIX_QUE* pque;          //任务消息传递队列
+    NIX_TCB* ptcb;          //任务TCB
+}TASK_STR;
+
+typedef struct task_pool    //任务池结构
+{
+    SLIST list;             //任务池链表根节点
+    NIX_SEM* psem;          //任务池信号量
+    U32 s_num;              //静态创建任务数量
+    U32 d_num;              //动态创建任务数量
+}TASK_POOL;
+
 /************************************************************************/
 extern BUFPOOL gstrBufPool;
 extern NIX_QUE *gpstrSerialMsgQue;

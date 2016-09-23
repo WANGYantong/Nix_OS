@@ -22,7 +22,7 @@ void buf_pool_init(void)
 	}
 
 	for (i = 0; i < BUF_TYPE_NUM; i++) {
-		slist_int(&gabuf_pool[i].list);
+		slist_init(&gabuf_pool[i].list);
 		gabuf_pool[i].psem = NIX_SemCreat(NULL, SEMBIN | SEMPRIO, SEMFULL);
 		gabuf_pool[i].len = 0;
 		gabuf_pool[i].s_num = 0;
@@ -147,7 +147,7 @@ void buf_free(BUF_NODE * pbuf)
 //入口参数: plist: 链表根节点指针
 //返 回 值: none.
 /***********************************************************************************/
-void slist_int(SLIST * plist)
+void slist_init(SLIST * plist)
 {
 	plist->next = (SLIST *) NULL;
 }
